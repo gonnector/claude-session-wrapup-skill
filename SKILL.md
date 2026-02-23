@@ -16,13 +16,13 @@ description: "세션 마무리, 세션 정리, 세션 래핑, 세션 요약, 배
 
 ## 언어별 변경 힌트 매핑
 
-| 언어 코드 | language_name | change_hint |
-|-----------|---------------|-------------|
-| ko | 한국어 | `/wrapup 언어 변경` |
-| en | English | `/wrapup change lang` |
-| ja | 日本語 | `/wrapup 言語変更` |
-| zh-cn / zh | 中文(简体) | `/wrapup 切换语言` |
-| 기타 | (직접 입력) | `/wrapup change lang` |
+| 언어 코드 | language_name | language_label | change_hint |
+|-----------|---------------|----------------|-------------|
+| ko | 한국어 | 랩업 언어 | `/wrapup 언어 변경` |
+| en | English | Wrap-up Language | `/wrapup change lang` |
+| ja | 日本語 | ラップアップ言語 | `/wrapup 言語変更` |
+| zh-cn / zh | 中文(简体) | 摘要语言 | `/wrapup 切换语言` |
+| 기타 | (직접 입력) | Wrap-up Language | `/wrapup change lang` |
 
 ---
 
@@ -215,7 +215,7 @@ python "$SKILL_DIR/scripts/save-wrapup.py" --file /tmp/wrapup-input.json
 누적 통계:
 - 사용자 학습 총 N건 | AI 학습 총 N건 | 세션 요약 총 N건
 
-언어: {language_name} | 변경: {change_hint}
+{language_label}: {language_name} | 변경: {change_hint}
 ```
 
 `{change_hint}`는 "언어별 변경 힌트 매핑" 표에서 현재 언어에 해당하는 값을 사용한다.
