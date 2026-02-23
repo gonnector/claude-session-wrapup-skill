@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 read-stats.py - Lesson-Learned 및 세션 요약 누적 통계 조회
 
@@ -10,11 +10,21 @@ project_path 미지정 시 세션 요약은 제외하고 lesson-learned 통계�
 """
 
 import json
+import re
 import sys
 from pathlib import Path
 
 USER_LESSONS_FILE = Path(r"Z:\_myself\lesson-learned\lessons.jsonl")
 AI_LESSONS_FILE = Path(r"Z:\_ai\lesson-learned\lessons.jsonl")
+SESSION_SUMMARIES_DIR = Path(r"Z:\_ai\session-summaries")
+
+
+def sanitize_project_path(project: str) -> str:
+    """프로젝트 경로를 디렉토리명으로 치환."""
+    s = project.replace("\\", "/").rstrip("/")
+    s = re.sub(r"[:/]", "-", s)
+    s = re.sub(r"-+", "-", s).strip("-")
+    return s
 
 
 def count_jsonl(filepath: Path) -> int:
@@ -63,7 +73,8 @@ def main():
     }
 
     if project_path:
-        summary_file = Path(project_path) / ".claude" / "session-summaries" / "summaries.jsonl"
+        project_slug = sanitize_project_path(project_path)
+        summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
         stats["session_summaries"] = {
             "total": count_jsonl(summary_file),
             "file": str(summary_file),

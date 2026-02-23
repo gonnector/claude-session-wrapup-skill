@@ -11,6 +11,9 @@ description: "세션 마무리, 세션 정리, 세션 래핑, 세션 요약, 배
 - 저장 스크립트: `scripts/save-wrapup.py`
 - 통계 스크립트: `scripts/read-stats.py`
 
+스크립트 경로 규칙: 이 스킬의 base directory를 `$SKILL_DIR`로 참조한다.
+실행 시 `python "$SKILL_DIR/scripts/save-wrapup.py"` 형태로 **절대 경로** 사용.
+
 ## 워크플로우
 
 아래 7단계를 순서대로 실행한다.
@@ -22,7 +25,7 @@ Bash 명령 병렬 실행:
 ```bash
 date +"%Y-%m-%dT%H:%M:%S"    # 현재 시각
 pwd                            # 프로젝트 경로
-python scripts/read-stats.py "$(pwd)"  # 누적 통계
+python "$SKILL_DIR/scripts/read-stats.py" "$(pwd)"  # 누적 통계
 ```
 
 세션 ID와 세션명 확인:
@@ -58,7 +61,7 @@ python scripts/read-stats.py "$(pwd)"  # 누적 통계
 2계층을 하나의 통합 드래프트로 표시한다. 아래 포맷 사용:
 
 ```
-## 📋 세션 요약 드래프트
+## 세션 요약 드래프트
 
 ### 정보 요약
 - ...
@@ -79,7 +82,7 @@ python scripts/read-stats.py "$(pwd)"  # 누적 통계
 
 ---
 
-## 🧠 Lesson-Learned 드래프트
+## Lesson-Learned 드래프트
 
 ### 사용자 학습
 1. **[제목]** (type) — 요약
@@ -100,13 +103,27 @@ AskUserQuestion으로 확인:
 
 ### Step 5: 저장
 
-확인된 드래프트를 JSON으로 구성하여 `scripts/save-wrapup.py`에 stdin으로 전달:
+확인된 드래프트를 JSON으로 구성하여 저장한다.
+
+**중요 — 드래프트 용어 → JSON 키 매핑:**
+
+| 드래프트 용어 | summary 하위 JSON 키 | 비고 |
+|---------------|----------------------|------|
+| 정보 요약 | `info` | 배열 of 문자열 |
+| Q&A | `qa` | 배열 of `{q, a}` |
+| 협의 결론 | `conclusions` | 배열 of `{topic, decision, rationale}` |
+| 액션 아이템 | `actions` | 배열 of `{title, priority}` |
+| 현재 시각 | `date` | ISO 8601 형식 |
+
+**반드시 위 키 이름을 정확히 사용할 것.** `information`, `decisions`, `action_items`, `timestamp` 등은 오류를 유발한다.
+
+저장 방법 — Write 도구로 임시 JSON 파일을 작성하고 `--file`로 전달:
 
 ```bash
-echo '<json>' | python scripts/save-wrapup.py
+python "$SKILL_DIR/scripts/save-wrapup.py" --file /tmp/wrapup-input.json
 ```
 
-입력 JSON 구조는 `references/schema.md`의 "save-wrapup.py 입력 JSON" 참조.
+입력 JSON 전체 구조는 `references/schema.md`의 "save-wrapup.py 입력 JSON" 참조.
 
 "세션 요약만" 선택 시 `user_lessons`, `ai_lessons`를 빈 배열로 전달.
 "Lesson-Learned만" 선택 시 `summary` 내부를 빈 배열로 전달.
@@ -127,10 +144,10 @@ echo '<json>' | python scripts/save-wrapup.py
 저장 결과와 누적 통계 표시:
 
 ```
-✅ 세션 랩업 완료!
+세션 랩업 완료!
 
 저장됨:
-- 세션 요약: {project}/.claude/session-summaries/summaries.jsonl
+- 세션 요약: Z:\_ai\session-summaries\{project-slug}\summaries.jsonl
 - 사용자 학습: N건
 - AI 학습: N건
 

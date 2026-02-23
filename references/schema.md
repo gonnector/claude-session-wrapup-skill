@@ -4,7 +4,7 @@
 
 | 데이터 | 경로 |
 |--------|------|
-| 세션 요약 | `{project}/.claude/session-summaries/summaries.jsonl` |
+| 세션 요약 | `Z:\_ai\session-summaries\{project-slug}\summaries.jsonl` |
 | 사용자 학습 | `Z:\_myself\lesson-learned\lessons.jsonl` |
 | AI 학습 | `Z:\_ai\lesson-learned\lessons.jsonl` |
 

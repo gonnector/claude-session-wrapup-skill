@@ -1,33 +1,36 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 save-wrapup.py - 세션 요약 + Lesson-Learned JSONL 저장
 
 Usage:
-    echo '{"session_id":...}' | python save-wrapup.py
+    python save-wrapup.py --file input.json
+    python save-wrapup.py < input.json
 
-stdin JSON 구조:
-{
-  "session_id": "abc-123",
-  "session_name": "세션 이름",
-  "project": "z:/_ai/skills/lesson-learned",
-  "date": "2026-02-23T15:30:00",
-  "summary": { "info": [], "qa": [], "conclusions": [], "actions": [] },
-  "user_lessons": [ { "type": "...", "category": "...", "title": "...", "summary": "...", "context": "...", "detail_ref": "", "tags": [] } ],
-  "ai_lessons": [ { "type": "...", "category": "...", "title": "...", "summary": "...", "context": "...", "detail_ref": "", "tags": [] } ]
-}
+입력 JSON 키 (summary 하위):
+  info, qa, conclusions, actions
 
 출력: 저장 결과 JSON (stdout)
 """
 
+import argparse
 import json
 import os
 import re
 import sys
 from pathlib import Path
 
-# Lesson-Learned 저장 경로 (고정)
+# 고정 저장 경로
 USER_LESSONS_DIR = Path(r"Z:\_myself\lesson-learned")
 AI_LESSONS_DIR = Path(r"Z:\_ai\lesson-learned")
+SESSION_SUMMARIES_DIR = Path(r"Z:\_ai\session-summaries")
+
+
+def sanitize_project_path(project: str) -> str:
+    """프로젝트 경로를 디렉토리명으로 치환. (Claude projects 방식)"""
+    s = project.replace("\\", "/").rstrip("/")
+    s = re.sub(r"[:/]", "-", s)
+    s = re.sub(r"-+", "-", s).strip("-")
+    return s
 
 
 def get_next_id(filepath: Path, prefix: str) -> str:
@@ -36,7 +39,7 @@ def get_next_id(filepath: Path, prefix: str) -> str:
         return f"{prefix}-001"
 
     last_id = None
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
             line = line.strip()
             if not line:
@@ -59,8 +62,9 @@ def get_next_id(filepath: Path, prefix: str) -> str:
 def append_jsonl(filepath: Path, entry: dict) -> None:
     """JSONL 파일에 1줄 append."""
     filepath.parent.mkdir(parents=True, exist_ok=True)
-    with open(filepath, "a", encoding="utf-8") as f:
-        f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    line = json.dumps(entry, ensure_ascii=False)
+    with open(filepath, "a", encoding="utf-8", errors="replace") as f:
+        f.write(line + "\n")
 
 
 def build_summary_entry(data: dict, entry_id: str) -> dict:
@@ -98,9 +102,18 @@ def build_lesson_entry(data: dict, lesson: dict, entry_id: str) -> dict:
 
 
 def main():
-    raw = sys.stdin.read().strip()
+    parser = argparse.ArgumentParser(description="Wrapup JSONL 저장")
+    parser.add_argument("--file", "-f", help="입력 JSON 파일 경로 (미지정 시 stdin)")
+    args = parser.parse_args()
+
+    if args.file:
+        with open(args.file, "r", encoding="utf-8", errors="replace") as f:
+            raw = f.read().strip()
+    else:
+        raw = sys.stdin.read().strip()
+
     if not raw:
-        print(json.dumps({"error": "stdin이 비어 있습니다"}))
+        print(json.dumps({"error": "입력이 비어 있습니다"}))
         sys.exit(1)
 
     try:
@@ -121,8 +134,8 @@ def main():
     # 1) 세션 요약 저장
     summary = data.get("summary")
     if summary and any(summary.get(k) for k in ["info", "qa", "conclusions", "actions"]):
-        project_path = Path(data["project"].replace("/", os.sep))
-        summary_file = project_path / ".claude" / "session-summaries" / "summaries.jsonl"
+        project_slug = sanitize_project_path(data["project"])
+        summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
         today = data["date"][:10]
         sid = get_next_id(summary_file, f"ws-{today.replace('-', '')}")
         entry = build_summary_entry(data, sid)
