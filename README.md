@@ -53,7 +53,7 @@ To change the language later, mention the change keyword when invoking the skill
 The keyword is shown in the completion message footer in your current language:
 
 ```
-Language: English | Change: /wrapup change lang
+Wrap-up Language: English | Change: /wrapup change lang
 ```
 
 **Supported languages:** Korean, English, Japanese, Chinese (Simplified), and others via free input.
