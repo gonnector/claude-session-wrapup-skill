@@ -37,18 +37,23 @@
 ## 파일 구조
 
 ```
-Z:\_ai\skills\lesson-learned\
+Z:\_ai\skills\wrapup\
 ├── SKILL.md                    ← 핵심: 분석 + 드래프트 + UI 로직
+├── README.md
+├── README_ko.md
+├── CHANGELOG.md
+├── LICENSE
 ├── scripts/
 │   ├── save-wrapup.py          ← 세션 요약 + Lesson-Learned JSONL 저장
-│   └── read-stats.py           ← 기존 데이터 통계 조회 (누적 건수 등)
+│   ├── read-stats.py           ← 기존 데이터 통계 조회 (누적 건수 등)
+│   └── settings.py             ← 언어 설정 관리 (v1.1.0 추가)
 ├── references/
 │   └── schema.md               ← JSONL 스키마 정의 + 예시
-├── research/
-│   └── research-report-2026-02-23-lesson-learned-system-design.md
 └── docs/
-    └── plans/
-        └── 2026-02-23-wrapup-skill-design.md  ← 이 문서
+    ├── plans/
+    │   └── 2026-02-23-wrapup-skill-design.md  ← 이 문서
+    └── research/
+        └── research-report-2026-02-23-lesson-learned-system-design.md
 ```
 
 ---

@@ -14,9 +14,68 @@ description: "세션 마무리, 세션 정리, 세션 래핑, 세션 요약, 배
 스크립트 경로 규칙: 이 스킬의 base directory를 `$SKILL_DIR`로 참조한다.
 실행 시 `python "$SKILL_DIR/scripts/save-wrapup.py"` 형태로 **절대 경로** 사용.
 
+## 언어별 변경 힌트 매핑
+
+| 언어 코드 | language_name | change_hint |
+|-----------|---------------|-------------|
+| ko | 한국어 | `/wrapup 언어 변경` |
+| en | English | `/wrapup change lang` |
+| ja | 日本語 | `/wrapup 言語変更` |
+| zh-cn / zh | 中文(简体) | `/wrapup 切换语言` |
+| 기타 | (직접 입력) | `/wrapup change lang` |
+
+---
+
 ## 워크플로우
 
-아래 7단계를 순서대로 실행한다.
+아래 8단계를 순서대로 실행한다.
+
+### Step 0: 언어 설정 확인
+
+**사용자 입력에 "언어 변경", "change lang", "change language", "言語変更", "切换语言" 중 하나라도 포함되어 있으면 → Step 0-B로 이동.**
+
+**Step 0-A: 기존 설정 읽기 (일반 실행)**
+
+```bash
+python "$SKILL_DIR/scripts/settings.py" read
+```
+
+- 결과에 `"initialized": true` → `language`, `language_name`, `change_hint` 값을 기억한다 → Step 1로 **무음** 진행
+- 결과가 `{}` 또는 파일 없음 → Step 0-C
+
+**Step 0-B: 언어 변경 (키워드 트리거)**
+
+AskUserQuestion으로 언어 선택 (4개 고정 옵션 + Other):
+- 한국어 (ko)
+- English (en)
+- 日本語 (ja)
+- 中文(简体) (zh-cn)
+
+선택 후:
+```bash
+python "$SKILL_DIR/scripts/settings.py" write --lang {code} --name "{name}"
+```
+
+"{name}(으)로 언어가 설정되었습니다." 안내 → Step 1로 진행.
+
+**Step 0-C: 최초 설정 (설정 파일 없을 때)**
+
+시스템 언어 감지:
+```bash
+python "$SKILL_DIR/scripts/settings.py" detect
+```
+
+AskUserQuestion 1개:
+"Select the language for wrapup records. (Detected: {detected_name})"
+- {detected_name} 사용 (Recommended)
+- English (en)
+- 한국어 (ko)
+- 日本語 (ja)
+- 中文(简体) (zh-cn)
+
+선택 후 write → `language`, `language_name`, `change_hint` 기억 → Step 1로 진행.
+
+---
 
 ### Step 1: 세션 메타정보 수집
 
@@ -33,6 +92,8 @@ python "$SKILL_DIR/scripts/read-stats.py" "$(pwd)"  # 누적 통계
 - 세션명이 없으면 **중단** → "세션명이 설정되지 않았습니다. `/rename 세션명`으로 설정 후 다시 시도해주세요." 안내
 
 ### Step 2: 대화 컨텍스트 분석 → 2계층 드래프트 생성
+
+**언어 규칙: 모든 내용(info, qa, conclusions, actions, lesson 제목/요약 등)은 Step 0에서 확인된 언어(`{language_name}`)로 작성한다. 대화가 다른 언어로 진행되었더라도 설정 언어로 번역하여 기록한다.**
 
 전체 대화 컨텍스트에서 아래 항목을 추출한다.
 
@@ -153,7 +214,11 @@ python "$SKILL_DIR/scripts/save-wrapup.py" --file /tmp/wrapup-input.json
 
 누적 통계:
 - 사용자 학습 총 N건 | AI 학습 총 N건 | 세션 요약 총 N건
+
+언어: {language_name} | 변경: {change_hint}
 ```
+
+`{change_hint}`는 "언어별 변경 힌트 매핑" 표에서 현재 언어에 해당하는 값을 사용한다.
 
 ## 에러 핸들링
 
