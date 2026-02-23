@@ -1,0 +1,16 @@
+# Claude Code local settings
+.claude/
+
+# Python
+__pycache__/
+*.pyc
+
+# Test artifacts
+scripts/test-*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
