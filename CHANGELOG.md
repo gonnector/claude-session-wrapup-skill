@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.3] - 2026-02-24
+
+### Changed
+- Step 7 completion message: replaced full box borders with horizontal-line-only layout — removes left/right vertical borders that misalign with mixed Korean/English content (CJK characters are double-width), keeps inline `│` separators for same-line items
+
+---
+
 ## [1.2.2] - 2026-02-24
 
 ### Changed
