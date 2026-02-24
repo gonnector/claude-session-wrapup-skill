@@ -220,44 +220,33 @@ AskUserQuestion으로 확인:
 
 **반드시 위 키 이름을 정확히 사용할 것.** `information`, `decisions`, `work_done`, `action_items`, `timestamp` 등은 오류를 유발한다.
 
-저장 방법 — **단일 `Bash(python:*)` 호출**로 처리한다. Write 도구, rm, subprocess, tempfile 모두 사용하지 않는다.
-`importlib`으로 `save-wrapup.py`를 직접 로드하여 `run(data)` 함수를 호출한다.
+저장 방법 — **Write 도구 + 단일 `Bash(python:*)` 호출** 2단계로 처리한다.
+`python -c "..."` 안에 데이터를 직접 내장하면 멀티라인 및 데이터 내 `$()` 텍스트가
+Claude Code 안전 검사를 유발하므로 사용하지 않는다.
 
-```python
-python -c "
-import json, importlib.util
+**① Write 도구로 JSON 파일 저장:**
 
-spec = importlib.util.spec_from_file_location('save_wrapup', r'SKILL_DIR\scripts\save-wrapup.py')
-mod = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(mod)
+JSON 데이터를 `SKILL_DIR/scripts/.wrapup-tmp.json` 에 Write 도구로 직접 저장한다.
+(Write 도구는 bash 안전 검사 대상이 아님)
 
-data = {
-    'session_id': '...',
-    'session_name': '...',
-    'project': '...',
-    'date': '...',
-    'summary': {
-        'info': [...],
-        'qa': [...],
-        'conclusions': [...],
-        'done': [...],
-        'actions': [...]
-    },
-    'user_lessons': [...],
-    'ai_lessons': [...]
-}
+입력 JSON 전체 구조는 `references/schema.md`의 "save-wrapup.py 입력 JSON" 참조.
 
-print(json.dumps(mod.run(data), ensure_ascii=False))
-"
+"세션 요약만" 선택 시 `user_lessons`, `ai_lessons`를 빈 배열로.
+"Lesson-Learned만" 선택 시 `summary` 내부를 빈 배열로.
+
+**② `--file` 인수로 저장 스크립트 실행 (단일 라인, `$()` 없음):**
+
+```bash
+python "SKILL_DIR\scripts\save-wrapup.py" --file "SKILL_DIR\scripts\.wrapup-tmp.json"
+```
+
+실행 후 `SKILL_DIR/scripts/.wrapup-tmp.json` 파일은 아래 단일 호출로 정리한다:
+
+```bash
+python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 ```
 
 `SKILL_DIR`은 실제 스킬 base directory 절대 경로로 치환한다 (예: `C:\Users\Pro\.claude\skills\wrapup`).
-
-`SKILL_DIR`은 실제 스킬 base directory 절대 경로로 치환한다.
-입력 JSON 전체 구조는 `references/schema.md`의 "save-wrapup.py 입력 JSON" 참조.
-
-"세션 요약만" 선택 시 `user_lessons`, `ai_lessons`를 빈 배열로 전달.
-"Lesson-Learned만" 선택 시 `summary` 내부를 빈 배열로 전달.
 
 저장 실패 시: 드래프트 텍스트를 그대로 출력하여 수동 저장 가능하게 안내.
 
