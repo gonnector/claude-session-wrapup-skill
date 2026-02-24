@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.8] - 2026-02-24
+
+### Changed
+- Step 3 Lesson-Learned draft: replaced `**제목** · \`type\`` pattern with numbered list format
+  ```
+  N. 주제 내용 [학습분류]
+     --> 내용 요약
+  ```
+  Consistent with Q&A / 협의 결론 style from v1.2.7
+
+---
+
 ## [1.2.7] - 2026-02-24
 
 ### Changed
