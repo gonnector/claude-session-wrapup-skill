@@ -24,6 +24,7 @@
   "conclusions": [
     { "topic": "안건명", "decision": "결정사항", "rationale": "이유" }
   ],
+  "work_done": ["구현: scripts/settings.py 언어 설정 관리", "수정: SKILL.md Step 2 언어 규칙 추가"],
   "action_items": [
     { "title": "할 일", "priority": "high|medium|low", "registered_todo": null }
   ]
@@ -48,6 +49,10 @@
   "tags": ["tag1", "tag2"]
 }
 ```
+
+### work_done 필드 하위 호환성
+
+`work_done`은 v1.2.0에서 추가된 필드입니다. 이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
 
 ### ID 접두사
 
@@ -81,6 +86,7 @@
     "info": ["정보 1", "정보 2"],
     "qa": [{ "q": "질문", "a": "답변" }],
     "conclusions": [{ "topic": "주제", "decision": "결정", "rationale": "이유" }],
+    "done": ["구현: ...", "수정: ...", "테스트: ..."],
     "actions": [{ "title": "할 일", "priority": "high" }]
   },
   "user_lessons": [

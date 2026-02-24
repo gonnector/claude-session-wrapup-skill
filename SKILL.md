@@ -101,7 +101,8 @@ python "$SKILL_DIR/scripts/read-stats.py" "$(pwd)"  # 누적 통계
 - A. **정보 요약**: 세션에서 조사/파악된 핵심 정보 (불릿 포인트)
 - B. **Q&A 정리**: 사용자 질문 + AI 답변 쌍
 - C. **협의 결론**: 토론/비교된 안건의 결론 + 이유(rationale)
-- D. **액션 아이템**: 후속 할 일 목록 (priority: high/medium/low)
+- D. **작업 내역**: 세션 중 실제로 수행한 작업 목록 (구현, 파일 수정, 버그 수정, 테스트, 문서 작업 등). Q&A나 토론이 아닌 실제 실행된 행위.
+- E. **액션 아이템**: 후속 할 일 목록 (priority: high/medium/low)
 
 **계층 2 — Lesson-Learned:**
 - E. **사용자 학습** 탐지 신호:
@@ -136,6 +137,9 @@ python "$SKILL_DIR/scripts/read-stats.py" "$(pwd)"  # 누적 통계
 | 주제 | 결정 | 이유 |
 |------|------|------|
 | ... | ... | ... |
+
+### 작업 내역
+- ...
 
 ### 액션 아이템
 - [ ] [high] ...
@@ -173,10 +177,11 @@ AskUserQuestion으로 확인:
 | 정보 요약 | `info` | 배열 of 문자열 |
 | Q&A | `qa` | 배열 of `{q, a}` |
 | 협의 결론 | `conclusions` | 배열 of `{topic, decision, rationale}` |
+| 작업 내역 | `done` | 배열 of 문자열 |
 | 액션 아이템 | `actions` | 배열 of `{title, priority}` |
 | 현재 시각 | `date` | ISO 8601 형식 |
 
-**반드시 위 키 이름을 정확히 사용할 것.** `information`, `decisions`, `action_items`, `timestamp` 등은 오류를 유발한다.
+**반드시 위 키 이름을 정확히 사용할 것.** `information`, `decisions`, `work_done`, `action_items`, `timestamp` 등은 오류를 유발한다.
 
 저장 방법 — Write 도구로 임시 JSON 파일을 작성하고 `--file`로 전달:
 

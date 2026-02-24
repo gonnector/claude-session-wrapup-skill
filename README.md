@@ -4,7 +4,7 @@
 
 A Claude Code skill that automatically records two layers of structured notes at the end of each session:
 
-- **Layer 1 — Session Summary**: info bullets, Q&A pairs, decisions with rationale, action items
+- **Layer 1 — Session Summary**: info bullets, Q&A pairs, decisions with rationale, work done, action items
 - **Layer 2 — Lesson-Learned**: what the user learned, what the AI learned (separated by perspective)
 
 Records are saved as JSONL — git-friendly, incrementally appendable, queryable.

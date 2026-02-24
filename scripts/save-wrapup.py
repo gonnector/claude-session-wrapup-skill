@@ -7,7 +7,7 @@ Usage:
     python save-wrapup.py < input.json
 
 입력 JSON 키 (summary 하위):
-  info, qa, conclusions, actions
+  info, qa, conclusions, done, actions
 
 출력: 저장 결과 JSON (stdout)
 """
@@ -79,6 +79,7 @@ def build_summary_entry(data: dict, entry_id: str) -> dict:
         "info_summary": summary.get("info", []),
         "qa_pairs": summary.get("qa", []),
         "conclusions": summary.get("conclusions", []),
+        "work_done": summary.get("done", None),
         "action_items": summary.get("actions", []),
     }
 
@@ -133,7 +134,7 @@ def main():
 
     # 1) 세션 요약 저장
     summary = data.get("summary")
-    if summary and any(summary.get(k) for k in ["info", "qa", "conclusions", "actions"]):
+    if summary and any(summary.get(k) for k in ["info", "qa", "conclusions", "done", "actions"]):
         project_slug = sanitize_project_path(data["project"])
         summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
         today = data["date"][:10]

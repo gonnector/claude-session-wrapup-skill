@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.0] - 2026-02-24
+
+### Added
+- **`work_done` field** in session summary: records actual work performed during the session (implementations, file edits, bug fixes, tests, docs) — distinct from Q&A and discussions
+- Ordered before `action_items` in both schema and draft display
+- Backward compatible: existing records without this field treat it as `null`
+
+---
+
 ## [1.1.1] - 2026-02-24
 
 ### Fixed
