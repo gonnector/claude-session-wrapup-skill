@@ -276,7 +276,7 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
   저장됨
   ├─ 세션 요약    {저장 경로}/summaries.jsonl
   ├─ 사용자 학습  N건
-  └─ AI 학습     N건
+  └─ AI 학습      N건
 ─────────────────────────────────────────────────────────────────
   누적 통계
   사용자 학습 총 N건  │  AI 학습 총 N건  │  세션 요약 총 N건
