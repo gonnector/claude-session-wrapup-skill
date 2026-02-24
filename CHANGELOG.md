@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.1] - 2026-02-24
+
+### Changed
+- Step 5 save method: replaced Write tool + `rm` with a single `Bash(python:*)` call that handles temp file creation and cleanup internally — eliminates all permission prompts during save
+
+---
+
 ## [1.2.0] - 2026-02-24
 
 ### Added
