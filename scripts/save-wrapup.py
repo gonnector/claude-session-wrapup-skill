@@ -49,6 +49,8 @@ def get_next_id(filepath: Path, prefix: str) -> str:
                 continue
             try:
                 entry = json.loads(line)
+                if not isinstance(entry, dict):
+                    continue
                 last_id = entry.get("id", "")
             except json.JSONDecodeError:
                 continue
@@ -170,9 +172,16 @@ def main():
 
     try:
         data = json.loads(raw)
-    except json.JSONDecodeError as e:
-        print(json.dumps({"error": f"JSON 파싱 실패: {e}"}))
-        sys.exit(1)
+    except json.JSONDecodeError:
+        # Windows 경로 백슬래시 미이스케이프 자동 수정 후 재시도
+        # 유효한 JSON 이스케이프(\\ \" \/ \b \f \n \r \t \uXXXX)가 아닌 \ 를 \\ 로 치환
+        import re as _re
+        fixed = _re.sub(r'\\(?![\\/"bfnrtu])', r'\\\\', raw)
+        try:
+            data = json.loads(fixed)
+        except json.JSONDecodeError as e:
+            print(json.dumps({"error": f"JSON 파싱 실패: {e}"}))
+            sys.exit(1)
 
     result = run(data)
     print(json.dumps(result, ensure_ascii=False))
