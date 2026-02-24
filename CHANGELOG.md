@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.6] - 2026-02-24
+
+### Added
+- `scripts/get-session.py`: Python script for extracting session ID and name from `~/.claude/projects/` — eliminates multi-line bash command substitution that triggered Claude Code's safety prompts
+
+### Changed
+- Step 1: replaced parallel-with-`$(pwd)` pattern with sequential `pwd` → parallel invocations, passing the path value directly; all bash calls are now single-line with no `$()` substitution
+
+---
+
 ## [1.2.5] - 2026-02-24
 
 ### Added
