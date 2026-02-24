@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.7] - 2026-02-24
+
+### Changed
+- Step 3 draft: Q&A and 협의 결론 switched from markdown table to numbered list format — `|` table alignment breaks in terminal monospace fonts with mixed CJK/Latin content
+  - Q&A: `N. 질문\n   --> 답변` pattern
+  - 협의 결론: `N. [주제] ...\n   [결정] ...\n   [이유] ...` pattern
+
+---
+
 ## [1.2.6] - 2026-02-24
 
 ### Added
