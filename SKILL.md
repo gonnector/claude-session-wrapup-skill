@@ -79,29 +79,20 @@ AskUserQuestion 1개:
 
 ### Step 1: 세션 메타정보 수집
 
-**① 프로젝트 경로 획득 (단독 실행):**
+**단일 호출로 모든 메타정보를 수집한다:**
 
 ```bash
-pwd
+python "$SKILL_DIR/scripts/collect-meta.py"
 ```
 
-결과를 `PROJECT_PATH`로 기억한다.
+반환 JSON 필드:
+- `date` — 현재 시각 (ISO 8601)
+- `project` — 프로젝트 경로
+- `session_id` — 세션 UUID
+- `session_name` — 세션명 (`/rename`으로 설정한 이름)
+- `stats` — 누적 통계 (user_lessons / ai_lessons / session_summaries)
 
-**② 나머지 메타정보 수집 (병렬 실행) — `PROJECT_PATH_VALUE`를 ① 결과로 직접 치환:**
-
-```bash
-date +"%Y-%m-%dT%H:%M:%S"
-```
-
-```bash
-python "$SKILL_DIR/scripts/read-stats.py" "PROJECT_PATH_VALUE"
-```
-
-```bash
-python "$SKILL_DIR/scripts/get-session.py" "PROJECT_PATH_VALUE"
-```
-
-`get-session.py` 결과의 `session_name`이 빈 문자열이면 **중단** → "세션명이 설정되지 않았습니다. `/rename 세션명`으로 설정 후 다시 시도해주세요." 안내
+`session_name`이 빈 문자열이면 **중단** → "세션명이 설정되지 않았습니다. `/rename 세션명`으로 설정 후 다시 시도해주세요." 안내
 
 ### Step 2: 대화 컨텍스트 분석 → 2계층 드래프트 생성
 
