@@ -183,11 +183,16 @@ AskUserQuestion으로 확인:
 
 **반드시 위 키 이름을 정확히 사용할 것.** `information`, `decisions`, `work_done`, `action_items`, `timestamp` 등은 오류를 유발한다.
 
-저장 방법 — **단일 `Bash(python:*)` 호출**로 처리한다. Write 도구나 rm 명령어를 사용하지 않는다.
+저장 방법 — **단일 `Bash(python:*)` 호출**로 처리한다. Write 도구, rm, subprocess, tempfile 모두 사용하지 않는다.
+`importlib`으로 `save-wrapup.py`를 직접 로드하여 `run(data)` 함수를 호출한다.
 
 ```python
 python -c "
-import sys, json, tempfile, os, subprocess
+import json, importlib.util
+
+spec = importlib.util.spec_from_file_location('save_wrapup', r'SKILL_DIR\scripts\save-wrapup.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
 
 data = {
     'session_id': '...',
@@ -205,18 +210,11 @@ data = {
     'ai_lessons': [...]
 }
 
-with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', suffix='.json', delete=False) as f:
-    json.dump(data, f, ensure_ascii=False)
-    tmp = f.name
-
-r = subprocess.run(
-    [sys.executable, r'SKILL_DIR\scripts\save-wrapup.py', '--file', tmp],
-    capture_output=True, text=True, encoding='utf-8'
-)
-os.unlink(tmp)
-print(r.stdout or r.stderr)
+print(json.dumps(mod.run(data), ensure_ascii=False))
 "
 ```
+
+`SKILL_DIR`은 실제 스킬 base directory 절대 경로로 치환한다 (예: `C:\Users\Pro\.claude\skills\wrapup`).
 
 `SKILL_DIR`은 실제 스킬 base directory 절대 경로로 치환한다.
 입력 JSON 전체 구조는 `references/schema.md`의 "save-wrapup.py 입력 JSON" 참조.

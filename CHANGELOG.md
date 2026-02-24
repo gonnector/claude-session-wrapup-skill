@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.2] - 2026-02-24
+
+### Changed
+- Step 5 save method: replaced `subprocess.run` + `tempfile` + `os.unlink` with `importlib` direct module call — eliminates all remaining permission prompts (`subprocess` and file deletion were still triggering approval despite `Bash(python:*)` allow rule)
+- `save-wrapup.py`: extracted core logic into `run(data: dict) -> dict` function, callable without subprocess
+
+---
+
 ## [1.2.1] - 2026-02-24
 
 ### Changed

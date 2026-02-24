@@ -6,15 +6,18 @@ Usage:
     python save-wrapup.py --file input.json
     python save-wrapup.py < input.json
 
+    또는 직접 import:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("save_wrapup", "path/to/save-wrapup.py")
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    result = mod.run(data)
+
 입력 JSON 키 (summary 하위):
   info, qa, conclusions, done, actions
-
-출력: 저장 결과 JSON (stdout)
 """
 
 import argparse
 import json
-import os
 import re
 import sys
 from pathlib import Path
@@ -102,33 +105,12 @@ def build_lesson_entry(data: dict, lesson: dict, entry_id: str) -> dict:
     }
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Wrapup JSONL 저장")
-    parser.add_argument("--file", "-f", help="입력 JSON 파일 경로 (미지정 시 stdin)")
-    args = parser.parse_args()
-
-    if args.file:
-        with open(args.file, "r", encoding="utf-8", errors="replace") as f:
-            raw = f.read().strip()
-    else:
-        raw = sys.stdin.read().strip()
-
-    if not raw:
-        print(json.dumps({"error": "입력이 비어 있습니다"}))
-        sys.exit(1)
-
-    try:
-        data = json.loads(raw)
-    except json.JSONDecodeError as e:
-        print(json.dumps({"error": f"JSON 파싱 실패: {e}"}))
-        sys.exit(1)
-
-    # 필수 필드 검증
+def run(data: dict) -> dict:
+    """데이터 dict를 받아 저장하고 결과 dict를 반환한다."""
     required = ["session_id", "session_name", "project", "date"]
     missing = [k for k in required if not data.get(k)]
     if missing:
-        print(json.dumps({"error": f"필수 필드 누락: {missing}"}))
-        sys.exit(1)
+        return {"error": f"필수 필드 누락: {missing}"}
 
     result = {"saved": {}, "counts": {}}
 
@@ -168,6 +150,31 @@ def main():
         result["saved"]["ai_lessons"] = str(ai_file)
         result["counts"]["ai_lessons"] = len(ai_lessons)
 
+    return result
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Wrapup JSONL 저장")
+    parser.add_argument("--file", "-f", help="입력 JSON 파일 경로 (미지정 시 stdin)")
+    args = parser.parse_args()
+
+    if args.file:
+        with open(args.file, "r", encoding="utf-8", errors="replace") as f:
+            raw = f.read().strip()
+    else:
+        raw = sys.stdin.read().strip()
+
+    if not raw:
+        print(json.dumps({"error": "입력이 비어 있습니다"}))
+        sys.exit(1)
+
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError as e:
+        print(json.dumps({"error": f"JSON 파싱 실패: {e}"}))
+        sys.exit(1)
+
+    result = run(data)
     print(json.dumps(result, ensure_ascii=False))
 
 
