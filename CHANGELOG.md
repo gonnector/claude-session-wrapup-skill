@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
-## [1.2.11] - 2026-02-24
+## [1.2.19] - 2026-02-24
 
 ### Changed
 - Step 2 Lesson-Learned 탐지 로직 전면 개편 (리서치 기반):
