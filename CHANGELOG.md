@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.4] - 2026-02-24
+
+### Changed
+- Step 3 draft display: redesigned with Unicode visual hierarchy — `━` thick lines for major sections, `◆`/`◈` icons for summary/lesson-learned headers, `▸` for sub-sections, `•`/`✓`/`▶`/`▷`/`·` item markers by type and priority; no left/right vertical borders (CJK double-width alignment rule)
+
+---
+
 ## [1.2.3] - 2026-02-24
 
 ### Changed
