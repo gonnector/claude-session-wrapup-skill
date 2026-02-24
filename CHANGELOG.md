@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.11] - 2026-02-24
+
+### Changed
+- Step 2 Lesson-Learned 탐지 로직 전면 개편 (리서치 기반):
+  - `user_question_answer` → `user_fact_question` (What/Who/When/Where 사실형)
+  - `user_concept_exploration` → `user_concept_question` (Why/How/비교/분석 개념형)
+  - `user_insight_feedback` 탐지 신호 4계층으로 확장 — "새로 알게 됐다/깨달았다"(확실), -군/-네+후속발화(약한 신호), "그래서 ~이었구나"(통합 재구성)
+  - `user_perspective_shift` 신규 추가 — 기존 관점/전제 재구조화 ("이렇게 생각하면 안 되겠다")
+  - `ai_user_guided` 신규 추가 — 사용자→AI 지식 전달 (명시적 교정, 도메인 주입, 가이드라인, 방식 교정)
+- `references/schema.md` 학습 유형 목록 및 예시 JSON 동기화
+
+### Added
+- `docs/research/research-report-2026-02-24-knowledge-acquisition-patterns.md`: 지식 획득 패턴 분류 체계 리서치 레포트 (팩트체크 + 자체 비평 완료)
+
+---
+
 ## [1.2.10] - 2026-02-24
 
 ### Changed

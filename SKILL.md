@@ -108,14 +108,26 @@ python "$SKILL_DIR/scripts/collect-meta.py"
 - E. **액션 아이템**: 후속 할 일 목록 (priority: high/medium/low)
 
 **계층 2 — Lesson-Learned:**
-- E. **사용자 학습** 탐지 신호:
-  - 질문→답변 패턴 → type: `user_question_answer`
-  - "이건 몰랐는데" 등 긍정 피드백 → type: `user_insight_feedback`
-  - "왜?", "차이가?" 등 개념 탐색 → type: `user_concept_exploration`
-- F. **AI 학습** 탐지 신호:
-  - 에러→수정 패턴 → type: `ai_trial_error`
-  - 새 정보 발견 → type: `ai_research_discovery`
-  - 전략 수정 → type: `ai_strategy_pivot`
+
+**사용자 학습 탐지 — Q: 이 대화에서 사용자가 무언가를 알게 됐는가?**
+- What/Who/When/Where 질문→AI 답변 패턴 → type: `user_fact_question`
+- Why/How/비교/분석 질문→AI 답변 패턴 → type: `user_concept_question`
+- 통찰/깨달음 표현 → type: `user_insight_feedback`
+  - [확실한 신호] "새로 알게 됐다", "깨달았다", "처음 알았어", "이건 몰랐는데"
+    "이렇게 되는 거구나", "그래서 ~이었구나", "결국 ~이구나"
+  - [후속 발화와 함께] -군(요)/-네(요) 어미, "아!"/"오!" — 단독으로는 백채널과 구분 불가
+- 기존 관점/전제가 틀렸음을 발견 → type: `user_perspective_shift`
+  "이렇게 생각하면 안 되겠다", "내가 잘못 알고 있었네", "완전히 다르게 봐야겠어"
+
+**AI 학습 탐지 — Q: 이 대화에서 AI가 무언가를 알게 됐거나, 방식을 바꿨는가?**
+- 에러/오답 → 수정 패턴 → type: `ai_trial_error`
+- 새로운 정보/맥락 발견 → type: `ai_research_discovery`
+- 접근 방식 전환 → type: `ai_strategy_pivot`
+- 사용자가 AI에게 가르치거나 방향을 지정 → type: `ai_user_guided`
+  - 명시적 교정: "아니야", "틀렸어", "실제로는 ~야"
+  - 도메인 주입: "내 상황은 ~이야", 배경/전문 지식 제공
+  - 가이드라인: "~스타일로", "~는 하지 마"
+  - 방식 교정: 출력 포맷/어조/수준 재지시
 
 양쪽 모두 해당하면 양쪽 다 기록 (같은 내용이지만 관점이 다름).
 

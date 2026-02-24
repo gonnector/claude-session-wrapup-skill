@@ -65,14 +65,16 @@
 ### 학습 유형 (type)
 
 **사용자 학습:**
-- `user_question_answer` — 질문하고 답을 얻은 것
-- `user_insight_feedback` — AI 제공 정보에 대한 긍정 피드백
-- `user_concept_exploration` — 개념적 이해 추구
+- `user_fact_question` — What/Who/When/Where 사실형 질문→AI 답변
+- `user_concept_question` — Why/How/비교/분석 개념형 질문→AI 답변
+- `user_insight_feedback` — 통찰/깨달음 표현 ("새로 알게 됐다", "깨달았다" 등)
+- `user_perspective_shift` — 기존 관점/전제가 틀렸음을 발견하는 관점 재구조화
 
 **AI 학습:**
 - `ai_trial_error` — 시행착오를 통한 발견
 - `ai_research_discovery` — 조사 과정에서의 새로운 발견
-- `ai_strategy_pivot` — 전략 수정을 통한 해결
+- `ai_strategy_pivot` — 전략/접근 방식 전환
+- `ai_user_guided` — 사용자가 AI에게 가르치거나 방향을 지정 (교정/도메인 주입/가이드라인/방식 교정)
 
 ## save-wrapup.py 입력 JSON
 
@@ -91,7 +93,7 @@
   },
   "user_lessons": [
     {
-      "type": "user_question_answer",
+      "type": "user_fact_question",
       "category": "system-design",
       "title": "제목",
       "summary": "요약",
