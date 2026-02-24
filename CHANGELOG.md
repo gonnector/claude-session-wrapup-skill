@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.9] - 2026-02-24
+
+### Added
+- `scripts/collect-meta.py`: single-call metadata collector combining `date`, `pwd`, `read-stats`, and `get-session` logic — returns unified JSON with all Step 1 fields
+
+### Changed
+- Step 1: replaced 4 separate bash calls with `python "$SKILL_DIR/scripts/collect-meta.py"` — zero bash-generated commands remain, eliminates risk of unexpected `head`/`tail`/`ls` usage
+
+---
+
 ## [1.2.8] - 2026-02-24
 
 ### Changed
