@@ -18,6 +18,37 @@ Records are saved as JSONL — git-friendly, incrementally appendable, queryable
 
 ---
 
+## Permission Setup
+
+Add the following to your **global** Claude Code settings (`~/.claude/settings.json`) so the skill runs without approval prompts:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)"
+    ]
+  }
+}
+```
+
+### Why only `python`?
+
+The skill calls Python scripts at four points (Steps 0, 1, 5). Other tools used during the workflow — `Read`, `Glob`, `Bash(date:*)`, `Bash(pwd:*)` — are auto-approved by Claude Code in default mode because they are non-destructive read-only or trivial operations.
+
+| Step | Tool | Command |
+|------|------|---------|
+| 0 | `Bash(python:*)` | `settings.py read / detect / write` |
+| 1 | `Bash(date:*)` | get current timestamp — auto-approved |
+| 1 | `Bash(pwd:*)` | get project path — auto-approved |
+| 1 | `Bash(python:*)` | `read-stats.py` |
+| 1 | `Read` / `Glob` | scan `~/.claude/projects/` session files — auto-approved |
+| 5 | `Bash(python:*)` | `python -c "importlib..."` save to JSONL |
+
+> **Project-level vs global:** The skill's own repo contains `.claude/settings.local.json` for development use only. For the skill to work across all your projects, add `Bash(python:*)` to `~/.claude/settings.json` (global).
+
+---
+
 ## Installation
 
 ```bash

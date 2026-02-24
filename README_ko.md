@@ -18,6 +18,37 @@
 
 ---
 
+## Permission 설정
+
+**전역** Claude Code 설정 파일(`~/.claude/settings.json`)에 아래 내용을 추가하면 스킬 실행 중 승인 프롬프트 없이 자동으로 진행됩니다:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)"
+    ]
+  }
+}
+```
+
+### `python`만 등록하면 되는 이유
+
+스킬은 Step 0·1·5에서 Python 스크립트를 총 4회 호출합니다. 그 외 사용되는 도구들(`Read`, `Glob`, `Bash(date:*)`, `Bash(pwd:*)`)은 파괴적이지 않은 읽기 전용 또는 단순 명령어로, Claude Code 기본 모드에서 자동 승인됩니다.
+
+| Step | 도구 | 명령 |
+|------|------|------|
+| 0 | `Bash(python:*)` | `settings.py read / detect / write` |
+| 1 | `Bash(date:*)` | 현재 시각 수집 — 자동 승인 |
+| 1 | `Bash(pwd:*)` | 프로젝트 경로 수집 — 자동 승인 |
+| 1 | `Bash(python:*)` | `read-stats.py` 실행 |
+| 1 | `Read` / `Glob` | `~/.claude/projects/` 세션 파일 탐색 — 자동 승인 |
+| 5 | `Bash(python:*)` | `python -c "importlib..."` JSONL 저장 |
+
+> **프로젝트별 vs 전역:** 스킬 레포의 `.claude/settings.local.json`은 개발용 파일입니다. 모든 프로젝트에서 스킬이 동작하려면 `~/.claude/settings.json`(전역)에 `Bash(python:*)`를 추가하세요.
+
+---
+
 ## 설치
 
 ```bash

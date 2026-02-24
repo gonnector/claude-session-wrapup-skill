@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.5] - 2026-02-24
+
+### Added
+- README / README_ko: "Permission Setup" section explaining that only `Bash(python:*)` needs explicit allow in `~/.claude/settings.json`; includes per-step tool breakdown with auto-approval notes
+
+---
+
 ## [1.2.4] - 2026-02-24
 
 ### Changed
