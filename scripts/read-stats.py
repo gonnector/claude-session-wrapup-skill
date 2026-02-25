@@ -9,10 +9,15 @@ project_path 미지정 시 세션 요약은 제외하고 lesson-learned 통계�
 출력: JSON (stdout)
 """
 
+import io
 import json
 import re
 import sys
 from pathlib import Path
+
+# Windows stdout UTF-8 강제
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 USER_LESSONS_FILE = Path(r"Z:\_myself\lesson-learned\lessons.jsonl")
 AI_LESSONS_FILE = Path(r"Z:\_ai\lesson-learned\lessons.jsonl")

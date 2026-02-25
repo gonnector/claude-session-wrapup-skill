@@ -9,11 +9,16 @@ Usage:
 """
 
 import argparse
+import io
 import json
 import locale
 import os
 import sys
 from pathlib import Path
+
+# Windows stdout UTF-8 강제
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 SETTINGS_FILE = Path.home() / ".claude" / "skill-settings" / "wrapup" / "settings.json"
 

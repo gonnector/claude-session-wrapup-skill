@@ -17,10 +17,17 @@ Usage:
 """
 
 import argparse
+import io
 import json
 import re
 import sys
 from pathlib import Path
+
+# Windows stdout/stdin UTF-8 강제
+if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+if sys.stdin.encoding and sys.stdin.encoding.lower() != "utf-8":
+    sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
 
 # 고정 저장 경로
 USER_LESSONS_DIR = Path(r"Z:\_myself\lesson-learned")

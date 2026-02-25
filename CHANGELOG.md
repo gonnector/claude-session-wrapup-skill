@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.2.20] - 2026-02-26
+
+### Fixed
+- Windows 환경에서 Python stdout 인코딩이 `cp949`일 때 한글이 `?????`로 출력되는 버그 수정
+  - `scripts/settings.py`: UTF-8 stdout 강제 패치 추가
+  - `scripts/read-stats.py`: UTF-8 stdout 강제 패치 추가
+  - `scripts/save-wrapup.py`: UTF-8 stdout + stdin 강제 패치 추가
+
+---
+
 ## [1.2.19] - 2026-02-24
 
 ### Changed
