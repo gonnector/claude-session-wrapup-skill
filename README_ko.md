@@ -105,18 +105,25 @@ ln -s /path/to/wrapup ~/.claude/skills/wrapup
 
 ---
 
-## 워크플로우 (8단계)
+## 워크플로우 (9단계)
 
 ```
 Step 0  언어 설정 확인 (최초 이후 무음)
 Step 1  세션 메타정보 수집
-Step 2  대화 분석 → 2계층 드래프트 생성
+Step 2  대화 분석 → 2계층 드래프트 생성 (auto memory 중복 확인 포함)
 Step 3  드래프트 표시 + 확인 (AskUserQuestion)
 Step 4  수정 루프 (변경 요청 시)
 Step 5  JSONL 저장
-Step 6  액션 아이템 /atodo 등록 제안
-Step 7  완료 메시지 + 누적 통계 표시
+Step 6  Auto Memory 동기화 — lesson을 auto memory로 승격 제안 (v1.3.0)
+Step 7  액션 아이템 /atodo 등록 제안
+Step 8  완료 메시지 + 누적 통계 표시
 ```
+
+### Auto Memory 연동 (v1.3.0)
+
+Claude Code의 [auto memory](https://docs.anthropic.com/en/docs/claude-code/memory) (`~/.claude/projects/{slug}/memory/`)에 이미 기록된 항목을 감지하여 lesson-learned에 중복 등록하지 않습니다. 겹치는 lesson은 `[📝 auto memory]` 태그를 붙이고 **맥락/발견 과정** 중심으로 경량화합니다.
+
+저장 후, auto memory에 아직 없는 AI lesson 중 향후 세션에서 재활용할 만한 패턴/도구/발견은 auto memory로 **승격 등록**을 제안합니다.
 
 ---
 

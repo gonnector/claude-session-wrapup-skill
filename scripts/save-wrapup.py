@@ -111,6 +111,7 @@ def build_lesson_entry(data: dict, lesson: dict, entry_id: str) -> dict:
         "context": lesson.get("context", ""),
         "detail_ref": lesson.get("detail_ref", ""),
         "tags": lesson.get("tags", []),
+        "memory_ref": lesson.get("memory_ref", None),
     }
 
 

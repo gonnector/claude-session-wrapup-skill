@@ -28,7 +28,7 @@ description: "세션 마무리, 세션 정리, 세션 래핑, 세션 요약, 배
 
 ## 워크플로우
 
-아래 8단계를 순서대로 실행한다.
+아래 9단계를 순서대로 실행한다.
 
 ### Step 0: 언어 설정 확인
 
@@ -97,6 +97,16 @@ python "$SKILL_DIR/scripts/collect-meta.py"
 ### Step 2: 대화 컨텍스트 분석 → 2계층 드래프트 생성
 
 **언어 규칙: 모든 내용(info, qa, conclusions, actions, lesson 제목/요약 등)은 Step 0에서 확인된 언어(`{language_name}`)로 작성한다. 대화가 다른 언어로 진행되었더라도 설정 언어로 번역하여 기록한다.**
+
+**Auto Memory 중복 확인 (선행 작업):**
+
+드래프트 생성 전, 현재 프로젝트의 auto memory 디렉토리를 Glob/Read 도구로 스캔한다:
+- 경로: `~/.claude/projects/{project-slug}/memory/*.md`
+- `{project-slug}`는 Step 1의 `project` 값에서 경로 구분자(`\`, `/`, `:`)를 `-`로 치환한 값
+- auto memory 파일이 존재하면 내용을 읽어 세션 중 기록된 항목 목록을 파악한다
+- 이후 Lesson-Learned 추출 시 auto memory에 이미 기록된 **사실(fact)과 동일한 내용**은 lesson에서 `[📝 auto memory]` 태그를 붙여 중복임을 표시한다
+- auto memory가 사실만 기록했다면, lesson은 **맥락(context)과 발견 과정** 중심으로 경량화한다
+- auto memory 디렉토리가 없거나 파일이 없으면 이 단계를 건너뛴다
 
 전체 대화 컨텍스트에서 아래 항목을 추출한다.
 
@@ -215,8 +225,8 @@ python "$SKILL_DIR/scripts/collect-meta.py"
   1. 주제 내용 [학습분류]
      - 내용 요약 첫 번째 줄    ← ✅ 중첩 불릿
      - 내용 요약 두 번째 줄
-  2. 주제 내용 [학습분류]
-     - 내용 요약
+  2. 주제 내용 [학습분류] [📝 auto memory]    ← auto memory에 이미 기록된 경우
+     - 맥락/과정 중심 요약 (사실은 auto memory 참조)
 
 ▸ AI 학습
 ────────────────────────────────────────────────────────────────────────────────────────
@@ -224,8 +234,8 @@ python "$SKILL_DIR/scripts/collect-meta.py"
   1. 주제 내용 [학습분류]
      - 내용 요약 첫 번째 줄    ← ✅ 중첩 불릿
      - 내용 요약 두 번째 줄
-  2. 주제 내용 [학습분류]
-     - 내용 요약
+  2. 주제 내용 [학습분류] [📝 auto memory]    ← auto memory에 이미 기록된 경우
+     - 맥락/과정 중심 요약
 
   ❌ 틀린 예 (절대 금지):
   1. 주제 내용 [학습분류]
@@ -298,7 +308,33 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 
 저장 실패 시: 드래프트 텍스트를 그대로 출력하여 수동 저장 가능하게 안내.
 
-### Step 6: /atodo 연동 제안
+### Step 6: Auto Memory 동기화 제안
+
+저장 완료 후, auto memory와의 양방향 동기화를 제안한다.
+
+**조건:** Lesson-Learned가 1건 이상 저장된 경우에만 실행. 0건이면 Step 7로 건너뛴다.
+
+**동기화 로직:**
+
+1. **Lesson → Auto Memory 방향 (승격 제안):**
+   - 저장된 AI lesson 중 `[📝 auto memory]` 태그가 **없는** 항목을 확인한다
+   - 이 중 향후 세션에서 반복 활용될 수 있는 패턴/도구/방법론이면 auto memory 등록을 제안한다
+   - AskUserQuestion: "AI 학습 N건 중 auto memory에 등록할 항목이 있습니다:"
+     - "전부 등록" → 각 항목의 핵심 사실을 auto memory에 Write/Edit
+     - "선택해서 등록" → 개별 확인 후 등록
+     - "건너뛰기"
+
+2. **Auto Memory → Lesson 방향 (중복 확인):**
+   - `[📝 auto memory]` 태그가 붙은 lesson이 있으면 건수를 안내한다:
+     "auto memory에 이미 기록된 학습 N건은 맥락 중심으로 경량화하여 저장했습니다."
+
+**Auto Memory 등록 시 규칙:**
+- 등록 경로: `~/.claude/projects/{project-slug}/memory/` 하위 적절한 토픽 파일
+- 기존 파일이 있으면 Edit 도구로 해당 섹션에 추가, 없으면 새 파일 생성
+- MEMORY.md 인덱스에 새 파일 링크 추가 (없는 경우)
+- lesson의 `memory_ref` 필드는 이미 저장 완료된 상태이므로 업데이트하지 않는다
+
+### Step 7: /atodo 연동 제안
 
 액션 아이템이 1건 이상이면 AskUserQuestion:
 - "전부 등록" → 각 항목을 `/atodo` Skill 호출
@@ -307,7 +343,7 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 
 `/atodo` 호출 실패 시: 액션 아이템 텍스트만 표시, 수동 등록 안내.
 
-### Step 7: 완료 메시지
+### Step 8: 완료 메시지
 
 저장 결과와 누적 통계를 아래 형식으로 표시한다.
 한/영 혼용 시 좌우 세로선은 문자 폭 차이로 정렬이 어긋나므로 사용하지 않는다.
@@ -320,7 +356,8 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
   저장됨
   ├─ 세션 요약    {저장 경로}/summaries.jsonl
   ├─ 사용자 학습  N건
-  └─ AI 학습      N건
+  ├─ AI 학습      N건
+  └─ auto memory  N건 승격 (auto memory 동기화가 실행된 경우에만 표시)
 ─────────────────────────────────────────────────────────────────
   누적 통계
   사용자 학습 총 N건  │  AI 학습 총 N건  │  세션 요약 총 N건

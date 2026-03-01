@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.3.0] - 2026-03-01
+
+### Added
+- **Auto Memory 연동**: Claude Code auto memory 기능과의 중복 방지 및 양방향 동기화 지원
+  - Step 2: 드래프트 생성 전 auto memory 디렉토리(`~/.claude/projects/{slug}/memory/`) 스캔, 이미 기록된 사실은 `[📝 auto memory]` 태그로 중복 표시
+  - Step 6 (신규): Auto Memory 동기화 제안 — AI lesson 중 auto memory에 없는 패턴을 승격 등록 제안, 이미 기록된 항목은 경량화 안내
+  - Step 8 완료 메시지: auto memory 승격 건수 표시
+- **`memory_ref` 필드**: Lesson-Learned 스키마에 nullable string 필드 추가 — auto memory 파일 참조 (예: `"research-sources.md"`)
+  - `references/schema.md`: 필드 정의 및 하위 호환성 설명 추가
+  - `scripts/save-wrapup.py`: `build_lesson_entry()`에서 `memory_ref` 처리
+
+### Changed
+- 워크플로우: 8단계 → 9단계 (기존 Step 6 /atodo → Step 7, Step 7 완료 → Step 8)
+
+---
+
 ## [1.2.22] - 2026-02-28
 
 ### Fixed

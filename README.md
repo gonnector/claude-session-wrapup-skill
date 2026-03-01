@@ -105,18 +105,25 @@ Settings are stored at: `~/.claude/skill-settings/wrapup/settings.json`
 
 ---
 
-## Workflow (8 Steps)
+## Workflow (9 Steps)
 
 ```
 Step 0  Language check (silent after first run)
 Step 1  Collect session metadata
-Step 2  Analyze conversation → draft 2-layer summary
+Step 2  Analyze conversation → draft 2-layer summary (with auto memory dedup check)
 Step 3  Show draft + confirm (AskUserQuestion)
 Step 4  Edit loop (if changes requested)
 Step 5  Save to JSONL
-Step 6  Offer to register action items in /atodo
-Step 7  Show completion message with stats
+Step 6  Auto memory sync — promote lessons to auto memory (v1.3.0)
+Step 7  Offer to register action items in /atodo
+Step 8  Show completion message with stats
 ```
+
+### Auto Memory Integration (v1.3.0)
+
+The skill detects items already recorded in Claude Code's [auto memory](https://docs.anthropic.com/en/docs/claude-code/memory) (`~/.claude/projects/{slug}/memory/`) and avoids duplicating them as lesson-learned entries. Instead, overlapping lessons are tagged `[📝 auto memory]` and focused on **context/reasoning** rather than restating facts.
+
+After saving, the skill offers to **promote** AI lessons that aren't yet in auto memory — useful patterns, tools, or discoveries worth persisting across sessions.
 
 ---
 

@@ -46,9 +46,14 @@
   "summary": "한 줄 요약",
   "context": "발견 맥락",
   "detail_ref": "",
-  "tags": ["tag1", "tag2"]
+  "tags": ["tag1", "tag2"],
+  "memory_ref": null
 }
 ```
+
+### memory_ref 필드
+
+`memory_ref`는 v1.3.0에서 추가된 필드입니다. auto memory에 동일 사실이 이미 기록된 경우 해당 파일명을 참조합니다 (예: `"research-sources.md"`). auto memory에 없는 lesson은 `null`입니다. 이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
 
 ### work_done 필드 하위 호환성
 
@@ -99,7 +104,8 @@
       "summary": "요약",
       "context": "맥락",
       "detail_ref": "",
-      "tags": ["tag"]
+      "tags": ["tag"],
+      "memory_ref": null
     }
   ],
   "ai_lessons": [
@@ -110,7 +116,8 @@
       "summary": "요약",
       "context": "맥락",
       "detail_ref": "",
-      "tags": ["tag"]
+      "tags": ["tag"],
+      "memory_ref": "research-sources.md"
     }
   ]
 }
