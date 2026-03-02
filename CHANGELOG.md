@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 세션 평가 UI 개선
   - **5c 종합 점수**: AskUserQuestion → 텍스트 기반 번호 입력으로 변경 (AskUserQuestion 옵션 4개 제한으로 5점 척도 표현 불가)
   - **5c**: 점수별 부연 설명 삭제, "1 매우 불만족" 옵션 추가 (5→4→3→2→1 완전한 5점 척도)
-  - **5d 텍스트 피드백**: AskUserQuestion 옵션 구성 명시 — "스킵" + "직접 입력" (description 개선: tab으로 입력 안내)
+  - **5d 텍스트 피드백**: AskUserQuestion → 텍스트 기반으로 변경 (AskUserQuestion "직접 입력" 옵션 선택 시 텍스트 필드 포커스 이동 불가 문제)
 
 ---
 
