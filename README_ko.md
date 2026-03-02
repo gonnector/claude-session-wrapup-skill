@@ -6,6 +6,7 @@
 
 - **계층 1 — 세션 요약**: 정보 요약, Q&A, 결정사항 + 이유(rationale), 작업 내역, 액션 아이템
 - **계층 2 — Lesson-Learned**: 사용자가 배운 것, AI가 배운 것 (관점별 분리)
+- **계층 3 — 세션 평가** (v1.4.0): AI 자기 진단 (5개 서브 메트릭) + 사용자 피드백 — 세션 품질 개선을 위한 메타-피드백 루프
 
 기록은 JSONL 포맷으로 저장됩니다 — git 친화적, 증분 추가, 쿼리 가능.
 
@@ -43,7 +44,7 @@
 | 1 | `Bash(pwd:*)` | 프로젝트 경로 수집 — 자동 승인 |
 | 1 | `Bash(python:*)` | `read-stats.py` 실행 |
 | 1 | `Read` / `Glob` | `~/.claude/projects/` 세션 파일 탐색 — 자동 승인 |
-| 5 | `Bash(python:*)` | `python -c "importlib..."` JSONL 저장 |
+| 6 | `Bash(python:*)` | `python -c "importlib..."` JSONL 저장 |
 
 > **프로젝트별 vs 전역:** 스킬 레포의 `.claude/settings.local.json`은 개발용 파일입니다. 모든 프로젝트에서 스킬이 동작하려면 `~/.claude/settings.json`(전역)에 `Bash(python:*)`를 추가하세요.
 
@@ -105,7 +106,7 @@ ln -s /path/to/wrapup ~/.claude/skills/wrapup
 
 ---
 
-## 워크플로우 (9단계)
+## 워크플로우 (10단계)
 
 ```
 Step 0  언어 설정 확인 (최초 이후 무음)
@@ -113,11 +114,23 @@ Step 1  세션 메타정보 수집
 Step 2  대화 분석 → 2계층 드래프트 생성 (auto memory 중복 확인 포함)
 Step 3  드래프트 표시 + 확인 (AskUserQuestion)
 Step 4  수정 루프 (변경 요청 시)
-Step 5  JSONL 저장
-Step 6  Auto Memory 동기화 — lesson을 auto memory로 승격 제안 (v1.3.0)
-Step 7  액션 아이템 /atodo 등록 제안
-Step 8  완료 메시지 + 누적 통계 표시
+Step 5  세션 평가 — AI 자기 진단 + 사용자 피드백 (v1.4.0)
+Step 6  JSONL 저장 (평가 데이터 포함)
+Step 7  Auto Memory 동기화 — lesson을 auto memory로 승격 제안 (v1.3.0)
+Step 8  액션 아이템 /atodo 등록 제안
+Step 9  완료 메시지 + 평가 요약 + 누적 통계 표시
 ```
+
+### 세션 평가 (v1.4.0)
+
+세션의 **운영/흐름(process)** 자체에 대한 품질 평가를 AI와 사용자 양측에서 수행합니다:
+
+- **AI 자기 진단**: 5개 서브 메트릭 (목표 달성, 소통 효율, 기술적 품질, 세션 흐름, 학습 가치) 각 1-5점 + 간단한 이유, 그리고 태그가 포함된 개선 사항 (반복 패턴 탐지용)
+- **사용자 피드백**: 종합 점수 (1-5) + 좋았던 점/아쉬웠던 점/개선 사항 (각각 스킵 가능)
+
+AI가 먼저, 사용자가 나중에 평가합니다 — anchoring bias 방지.
+
+> **정의**: "AI 만족도"는 감정적 만족이 아니라 **세션 품질에 대한 AI의 자기 진단(self-assessment)**을 의미합니다.
 
 ### Auto Memory 연동 (v1.3.0)
 
@@ -135,10 +148,12 @@ wrapup/
 ├── scripts/
 │   ├── save-wrapup.py            ← JSONL 저장 로직
 │   ├── read-stats.py             ← 누적 통계 조회
+│   ├── collect-meta.py           ← 세션 메타정보 수집
 │   └── settings.py               ← 언어 설정 관리
 ├── references/
 │   └── schema.md                 ← JSONL 스키마 정의
 └── docs/
+    ├── prd.md                    ← 제품 요구사항 정의서
     ├── plans/
     │   └── 2026-02-23-wrapup-skill-design.md
     └── research/

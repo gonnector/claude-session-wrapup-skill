@@ -27,7 +27,27 @@
   "work_done": ["구현: scripts/settings.py 언어 설정 관리", "수정: SKILL.md Step 2 언어 규칙 추가"],
   "action_items": [
     { "title": "할 일", "priority": "high|medium|low", "registered_todo": null }
-  ]
+  ],
+  "evaluation": {
+    "ai": {
+      "sub_scores": {
+        "goal_achievement": { "score": 5, "reason": "사용자 요청 모두 완수" },
+        "communication_efficiency": { "score": 4, "reason": "1회 clarification으로 의도 파악" },
+        "technical_quality": { "score": 3, "reason": "2번의 수정 필요" },
+        "session_flow": { "score": 3, "reason": "중간에 방향 전환 1회" },
+        "learning_value": { "score": 4, "reason": "양측 모두 의미 있는 lesson 도출" }
+      },
+      "improvements": [
+        { "tag": "technical-verification", "text": "코드 제시 전 검증 단계 추가 필요" }
+      ]
+    },
+    "user": {
+      "score": 4,
+      "good_points": ["AI 의견이 구체적이었음"],
+      "bad_points": [],
+      "improvements": ["평가 항목 세분화 검토"]
+    }
+  }
 }
 ```
 
@@ -54,6 +74,30 @@
 ### memory_ref 필드
 
 `memory_ref`는 v1.3.0에서 추가된 필드입니다. auto memory에 동일 사실이 이미 기록된 경우 해당 파일명을 참조합니다 (예: `"research-sources.md"`). auto memory에 없는 lesson은 `null`입니다. 이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
+
+### evaluation 필드
+
+`evaluation`은 v1.4.0에서 추가된 필드입니다. 세션의 운영/흐름에 대한 품질 평가 데이터입니다.
+
+**ai 객체:**
+- `sub_scores`: 5개 서브 메트릭. 각 메트릭은 `{ "score": integer(1-5), "reason": string }` 형태.
+  - `goal_achievement` — 목표 달성도
+  - `communication_efficiency` — 소통 효율성
+  - `technical_quality` — 기술적 품질
+  - `session_flow` — 세션 흐름 매끄러움
+  - `learning_value` — 학습 가치
+- `improvements`: 개선 사항 배열. 각 항목은 `{ "tag": string, "text": string }` 형태.
+  - `tag`: 정규화된 kebab-case 식별자 (반복 탐지 매칭 키)
+
+> **"AI 만족도"의 정의**: AI는 감정적 만족을 느끼지 않는다. "AI 만족도"는 **세션 품질에 대한 AI의 자기 진단(self-assessment)** 을 의미한다.
+
+**user 객체:**
+- `score`: integer(1-5) — 종합 만족도
+- `good_points`: string[] — 좋았던 점 (스킵 시 빈 배열)
+- `bad_points`: string[] — 아쉬웠던 점 (스킵 시 빈 배열)
+- `improvements`: string[] — 개선 사항 (스킵 시 빈 배열)
+
+이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
 
 ### work_done 필드 하위 호환성
 
@@ -119,6 +163,26 @@
       "tags": ["tag"],
       "memory_ref": "research-sources.md"
     }
-  ]
+  ],
+  "evaluation": {
+    "ai": {
+      "sub_scores": {
+        "goal_achievement": { "score": 5, "reason": "사용자 요청 모두 완수" },
+        "communication_efficiency": { "score": 4, "reason": "1회 clarification" },
+        "technical_quality": { "score": 3, "reason": "2번 수정" },
+        "session_flow": { "score": 3, "reason": "방향 전환 1회" },
+        "learning_value": { "score": 4, "reason": "양측 lesson 도출" }
+      },
+      "improvements": [
+        { "tag": "technical-verification", "text": "코드 제시 전 검증 필요" }
+      ]
+    },
+    "user": {
+      "score": 4,
+      "good_points": ["AI 의견이 구체적"],
+      "bad_points": [],
+      "improvements": ["평가 항목 세분화 검토"]
+    }
+  }
 }
 ```

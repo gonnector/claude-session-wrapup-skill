@@ -6,6 +6,7 @@ A Claude Code skill that automatically records two layers of structured notes at
 
 - **Layer 1 — Session Summary**: info bullets, Q&A pairs, decisions with rationale, work done, action items
 - **Layer 2 — Lesson-Learned**: what the user learned, what the AI learned (separated by perspective)
+- **Layer 3 — Session Evaluation** (v1.4.0): AI self-assessment (5 sub-metrics) + user feedback — a meta-feedback loop for session quality improvement
 
 Records are saved as JSONL — git-friendly, incrementally appendable, queryable.
 
@@ -43,7 +44,7 @@ The skill calls Python scripts at four points (Steps 0, 1, 5). Other tools used 
 | 1 | `Bash(pwd:*)` | get project path — auto-approved |
 | 1 | `Bash(python:*)` | `read-stats.py` |
 | 1 | `Read` / `Glob` | scan `~/.claude/projects/` session files — auto-approved |
-| 5 | `Bash(python:*)` | `python -c "importlib..."` save to JSONL |
+| 6 | `Bash(python:*)` | `python -c "importlib..."` save to JSONL |
 
 > **Project-level vs global:** The skill's own repo contains `.claude/settings.local.json` for development use only. For the skill to work across all your projects, add `Bash(python:*)` to `~/.claude/settings.json` (global).
 
@@ -105,7 +106,7 @@ Settings are stored at: `~/.claude/skill-settings/wrapup/settings.json`
 
 ---
 
-## Workflow (9 Steps)
+## Workflow (10 Steps)
 
 ```
 Step 0  Language check (silent after first run)
@@ -113,11 +114,23 @@ Step 1  Collect session metadata
 Step 2  Analyze conversation → draft 2-layer summary (with auto memory dedup check)
 Step 3  Show draft + confirm (AskUserQuestion)
 Step 4  Edit loop (if changes requested)
-Step 5  Save to JSONL
-Step 6  Auto memory sync — promote lessons to auto memory (v1.3.0)
-Step 7  Offer to register action items in /atodo
-Step 8  Show completion message with stats
+Step 5  Session evaluation — AI self-assessment + user feedback (v1.4.0)
+Step 6  Save to JSONL (including evaluation data)
+Step 7  Auto memory sync — promote lessons to auto memory (v1.3.0)
+Step 8  Offer to register action items in /atodo
+Step 9  Show completion message with evaluation summary + stats
 ```
+
+### Session Evaluation (v1.4.0)
+
+The skill evaluates session **process quality** (not the topic) from both perspectives:
+
+- **AI self-assessment**: 5 sub-metrics (goal achievement, communication efficiency, technical quality, session flow, learning value) each scored 1-5 with brief reasoning, plus actionable improvements with tags for recurring pattern detection
+- **User feedback**: overall score (1-5) + optional good points / bad points / improvements (each skippable)
+
+AI evaluates first, then user — preventing anchoring bias.
+
+> **Definition**: "AI satisfaction" means **AI's self-diagnosis of session quality**, not emotional satisfaction.
 
 ### Auto Memory Integration (v1.3.0)
 
@@ -135,10 +148,12 @@ wrapup/
 ├── scripts/
 │   ├── save-wrapup.py            ← JSONL save logic
 │   ├── read-stats.py             ← Cumulative stats reader
+│   ├── collect-meta.py           ← Session metadata collector
 │   └── settings.py               ← Language settings manager
 ├── references/
 │   └── schema.md                 ← JSONL schema definitions
 └── docs/
+    ├── prd.md                    ← Product Requirements Document
     ├── plans/
     │   └── 2026-02-23-wrapup-skill-design.md
     └── research/

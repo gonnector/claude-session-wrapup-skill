@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.0] - 2026-03-02
+
+### Added
+- **세션 평가 기능**: 세션의 운영/흐름(process)에 대한 AI + 사용자 양측 품질 평가
+  - **AI 자기 진단**: 5개 서브 메트릭 (목표 달성, 소통 효율, 기술적 품질, 세션 흐름, 학습 가치) 각 1-5점 + 한 줄 이유
+  - **AI 개선 사항**: 태그(`tag`) 포함 구조화된 improvement — 반복 탐지용 매칭 키
+  - **사용자 피드백**: 종합 점수 (1-5) + 좋았던 점/아쉬웠던 점/개선 사항 (각각 스킵 가능)
+  - AI 먼저, 사용자 나중에 평가 (anchoring bias 방지)
+  - "AI 만족도 = 세션 품질에 대한 AI의 자기 진단" 정의 명시
+- **`evaluation` 필드**: 세션 요약 스키마에 추가 — `ai.sub_scores` (각 score+reason) + `ai.improvements` (tag+text) + `user.score/good_points/bad_points/improvements`
+- **`docs/prd.md`**: 제품 요구사항 정의서 신규 생성 — 전체 기능 명세, 데이터 스키마, 워크플로우, Improvement Lifecycle 설계
+
+### Changed
+- 워크플로우: 9단계 → 10단계 (기존 Step 5-8 → Step 6-9, 새 Step 5: 세션 평가)
+- `save-wrapup.py`: `build_summary_entry()`에 `evaluation` 필드 추가, 저장 조건에 evaluation 데이터 존재 여부 추가
+- Step 9 완료 메시지: 평가 요약 (AI 서브 메트릭 별 + 사용자 점수) 표시 추가
+
+---
+
 ## [1.3.0] - 2026-03-01
 
 ### Added
