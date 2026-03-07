@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.2] - 2026-03-07
+
+### Changed
+- 사용자 평가 텍스트 피드백 스킵 UX 개선 — "없으면 스킵" → "없으면 엔터"
+  - 빈 입력(엔터만)이 기본 스킵 방식, "스킵"/"없음" 텍스트 입력도 호환 유지
+
+---
+
 ## [1.4.1] - 2026-03-03
 
 ### Fixed

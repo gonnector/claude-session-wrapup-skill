@@ -93,9 +93,9 @@
 
 **user 객체:**
 - `score`: integer(1-5) — 종합 만족도
-- `good_points`: string[] — 좋았던 점 (스킵 시 빈 배열)
-- `bad_points`: string[] — 아쉬웠던 점 (스킵 시 빈 배열)
-- `improvements`: string[] — 개선 사항 (스킵 시 빈 배열)
+- `good_points`: string[] — 좋았던 점 (빈 입력 시 빈 배열)
+- `bad_points`: string[] — 아쉬웠던 점 (빈 입력 시 빈 배열)
+- `improvements`: string[] — 개선 사항 (빈 입력 시 빈 배열)
 
 이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
 

@@ -126,7 +126,7 @@ Step 9  Show completion message with evaluation summary + stats
 The skill evaluates session **process quality** (not the topic) from both perspectives:
 
 - **AI self-assessment**: 5 sub-metrics (goal achievement, communication efficiency, technical quality, session flow, learning value) each scored 1-5 with brief reasoning, plus actionable improvements with tags for recurring pattern detection
-- **User feedback**: overall score (1-5) + optional good points / bad points / improvements (each skippable)
+- **User feedback**: overall score (1-5) + optional good points / bad points / improvements (press Enter to skip each)
 
 AI evaluates first, then user — preventing anchoring bias.
 
