@@ -427,14 +427,14 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 - MEMORY.md 인덱스에 새 파일 링크 추가 (없는 경우)
 - lesson의 `memory_ref` 필드는 이미 저장 완료된 상태이므로 업데이트하지 않는다
 
-### Step 8: /atodo 연동 제안
+### Step 8: /todo 연동 제안
 
 액션 아이템이 1건 이상이면 AskUserQuestion:
-- "전부 등록" → 각 항목을 `/atodo` Skill 호출
+- "전부 등록" → 각 항목을 `/todo` Skill 호출
 - "선택해서 등록" → 개별 AskUserQuestion으로 확인 후 등록
 - "나중에" → 건너뜀
 
-`/atodo` 호출 실패 시: 액션 아이템 텍스트만 표시, 수동 등록 안내.
+`/todo` 호출 실패 시: 액션 아이템 텍스트만 표시, 수동 등록 안내.
 
 ### Step 9: 완료 메시지
 
@@ -473,5 +473,5 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 | JSONL 파일 없음 (첫 실행) | 자동 생성 |
 | 저장 실패 | 드래프트 텍스트 출력 → 수동 저장 안내 |
 | 대화 컨텍스트 너무 짧음 | "추출할 학습 내용이 부족합니다" 안내 |
-| /atodo 호출 실패 | 액션 아이템 텍스트만 표시, 수동 등록 안내 |
+| /todo 호출 실패 | 액션 아이템 텍스트만 표시, 수동 등록 안내 |
 | 사용자 평가 전체 스킵 (빈 입력) | evaluation.user의 텍스트 필드를 빈 배열로 저장 (score는 필수) |

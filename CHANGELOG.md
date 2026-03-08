@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.3] - 2026-03-09
+
+### Changed
+- Step 8 todo 연동 참조를 `/atodo` → `/todo`로 업데이트 (스킬 리팩토링 반영)
+  - 변경 대상: SKILL.md, README.md, README_ko.md, docs/prd.md
+  - 과거 기록(CHANGELOG, docs/plans, docs/research)은 미변경
+
+---
+
 ## [1.4.2] - 2026-03-07
 
 ### Changed

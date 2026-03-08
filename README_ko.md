@@ -117,7 +117,7 @@ Step 4  수정 루프 (변경 요청 시)
 Step 5  세션 평가 — AI 자기 진단 + 사용자 피드백 (v1.4.0)
 Step 6  JSONL 저장 (평가 데이터 포함)
 Step 7  Auto Memory 동기화 — lesson을 auto memory로 승격 제안 (v1.3.0)
-Step 8  액션 아이템 /atodo 등록 제안
+Step 8  액션 아이템 /todo 등록 제안
 Step 9  완료 메시지 + 평가 요약 + 누적 통계 표시
 ```
 

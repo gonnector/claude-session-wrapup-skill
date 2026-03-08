@@ -117,7 +117,7 @@ Step 4  Edit loop (if changes requested)
 Step 5  Session evaluation — AI self-assessment + user feedback (v1.4.0)
 Step 6  Save to JSONL (including evaluation data)
 Step 7  Auto memory sync — promote lessons to auto memory (v1.3.0)
-Step 8  Offer to register action items in /atodo
+Step 8  Offer to register action items in /todo
 Step 9  Show completion message with evaluation summary + stats
 ```
 
