@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.4.4] - 2026-03-09
+
+### Changed
+- Step 5d 사용자 텍스트 피드백 UI 개선 — AskUserQuestion 3-question 일괄 방식으로 전환
+  - 기존: 3개 질문을 하나씩 순서대로 (인터랙션 3회, 빈 입력 스킵 불가)
+  - 변경: AskUserQuestion questions 배열로 한 번에 표시 (인터랙션 1회)
+  - 각 질문 옵션: "비워두기" / "AI 추출" / Other(직접 입력)
+
+---
+
 ## [1.4.3] - 2026-03-09
 
 ### Changed

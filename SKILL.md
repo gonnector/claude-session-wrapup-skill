@@ -336,17 +336,33 @@ AskUserQuestion으로 확인:
 
 **5d: 사용자 평가 — 텍스트 피드백 (선택)**
 
-점수 입력 후, 아래 3가지를 텍스트로 순서대로 질문한다 (AskUserQuestion 미사용 — "직접 입력" 옵션 선택 시 텍스트 필드로 포커스 이동 불가 문제).
+점수 입력 후, AskUserQuestion의 questions 배열로 3개 질문을 **한 번에** 표시한다.
 세션 주제가 아니라 **세션 운영/흐름 자체**에 대한 피드백임을 안내한다.
 
-질문 순서 (각 질문에 엔터로 스킵 가능함을 안내):
-1. "좋았던 점이 있다면? (없으면 엔터)"
-2. "아쉬웠던 점이 있다면? (없으면 엔터)"
-3. "개선 사항이 있다면? (없으면 엔터)"
+```
+AskUserQuestion(questions=[
+  { question: "좋았던 점이 있다면? (세션 운영/흐름 관점)",  header: "좋았던 점",  multiSelect: false,
+    options: [
+      { label: "비워두기", description: "피드백 없이 넘어갑니다" },
+      { label: "AI 추출", description: "대화 컨텍스트에서 추출을 시도합니다" }
+    ]},
+  { question: "아쉬웠던 점이 있다면? (세션 운영/흐름 관점)", header: "아쉬운 점",  multiSelect: false,
+    options: [
+      { label: "비워두기", description: "피드백 없이 넘어갑니다" },
+      { label: "AI 추출", description: "대화 컨텍스트에서 추출을 시도합니다" }
+    ]},
+  { question: "개선 사항이 있다면? (세션 운영/흐름 관점)",  header: "개선 사항",  multiSelect: false,
+    options: [
+      { label: "비워두기", description: "피드백 없이 넘어갑니다" },
+      { label: "AI 추출", description: "대화 컨텍스트에서 추출을 시도합니다" }
+    ]}
+])
+```
 
-사용자가 빈 입력(엔터만), "스킵", "없음" 시 해당 항목은 빈 배열.
-3가지를 한 번에 질문하지 않고 **하나씩 순서대로** 질문한다 (이전 답변을 보고 다음 질문 맥락 조정 가능).
-사용자가 모두 스킵하면 `good_points`, `bad_points`, `improvements` 모두 빈 배열.
+- 사용자가 "Other"를 선택하면 직접 입력한 값을 해당 필드에 사용
+- "비워두기" 선택 시 해당 필드를 빈 배열로 설정
+- "AI 추출" 선택 시 대화 컨텍스트에서 세션 운영/흐름 관련 피드백을 추출 시도
+- 3개 모두 "비워두기"이면 `good_points`, `bad_points`, `improvements` 모두 빈 배열
 
 ---
 
