@@ -77,12 +77,45 @@ def main():
         },
     }
 
+    # 글로벌 통계: 모든 프로젝트의 랩업 수 + 누적 협업 시간
+    global_total = 0
+    total_elapsed = 0
+    if SESSION_SUMMARIES_DIR.exists():
+        for summary_dir in SESSION_SUMMARIES_DIR.iterdir():
+            if not summary_dir.is_dir():
+                continue
+            sf = summary_dir / "summaries.jsonl"
+            if not sf.exists():
+                continue
+            with open(sf, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                        if not isinstance(entry, dict):
+                            continue
+                        global_total += 1
+                        timing = entry.get("timing")
+                        if timing and isinstance(timing, dict):
+                            total_elapsed += timing.get("elapsed_minutes", 0)
+                    except json.JSONDecodeError:
+                        continue
+
     if project_path:
         project_slug = sanitize_project_path(project_path)
         summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
         stats["session_summaries"] = {
             "total": count_jsonl(summary_file),
+            "global_total": global_total,
+            "total_elapsed_minutes": total_elapsed,
             "file": str(summary_file),
+        }
+    else:
+        stats["session_summaries"] = {
+            "global_total": global_total,
+            "total_elapsed_minutes": total_elapsed,
         }
 
     print(json.dumps(stats, ensure_ascii=False, indent=2))

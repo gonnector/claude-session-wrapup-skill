@@ -90,7 +90,11 @@ python "$SKILL_DIR/scripts/collect-meta.py"
 - `project` — 프로젝트 경로
 - `session_id` — 세션 UUID
 - `session_name` — 세션명 (`/rename`으로 설정한 이름)
+- `timing` — 세션 시간 측정 (`session_start`, `wrapup_start`, `segment_start`, `elapsed_minutes`, `is_continuation`, `wrapup_number`)
 - `stats` — 누적 통계 (user_lessons / ai_lessons / session_summaries)
+  - `stats.session_summaries.total` — 현재 프로젝트 랩업 수
+  - `stats.session_summaries.global_total` — 전체 프로젝트 합산 랩업 수
+  - `stats.session_summaries.total_elapsed_minutes` — 전체 누적 협업 시간 (분)
 
 `session_name`이 빈 문자열이면 **중단** → "세션명이 설정되지 않았습니다. `/rename 세션명`으로 설정 후 다시 시도해주세요." 안내
 
@@ -462,6 +466,7 @@ AskUserQuestion(questions=[
 | 현재 시각 | `date` | 최상위 | ISO 8601 형식 |
 | AI 평가 | `ai` | `evaluation.` | `{sub_scores, improvements}` |
 | 사용자 평가 | `user` | `evaluation.` | `{score, good_points, bad_points, improvements}` |
+| 세션 시간 | `timing` | 최상위 | Step 1의 `timing` 객체를 그대로 전달 |
 
 **반드시 위 키 이름을 정확히 사용할 것.** `information`, `decisions`, `work_done`, `action_items`, `timestamp` 등은 오류를 유발한다.
 
@@ -533,6 +538,9 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 ─────────────────────────────────────────────────────────────────
   세션 랩업 완료!
 ─────────────────────────────────────────────────────────────────
+  세션 시간
+  시작 HH:MM  │  랩업 HH:MM  │  소요 Xh Ym
+─────────────────────────────────────────────────────────────────
   저장됨
   ├─ 세션 요약    {저장 경로}/summaries.jsonl
   ├─ 사용자 학습  N건
@@ -544,11 +552,26 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
   사용자  ★★★★☆  4/5
 ─────────────────────────────────────────────────────────────────
   누적 통계
-  사용자 학습 총 N건  │  AI 학습 총 N건  │  세션 요약 총 N건
+  사용자 학습 총 N건  │  AI 학습 총 N건  │  랩업 총 N건  │  협업 총 Xh Ym
 ─────────────────────────────────────────────────────────────────
   {language_label}: {language_name}  │  변경: {change_hint}
 ─────────────────────────────────────────────────────────────────
 ```
+
+**세션 시간 섹션 규칙:**
+- `시작`/`랩업` 시각은 `timing.segment_start`/`timing.wrapup_start`의 HH:MM 부분
+- `소요`는 `timing.elapsed_minutes`를 `Xh Ym` 형식으로 변환 (1시간 미만이면 `Ym`만 표시)
+- 같은 세션에서 2번째 이상 랩업인 경우 (`timing.is_continuation == true`):
+  ```
+  세션 시간 (N번째 랩업)
+  세션 시작 HH:MM  │  구간 시작 HH:MM  │  랩업 HH:MM  │  구간 소요 Xh Ym
+  ```
+- `timing`이 `null`이면 세션 시간 섹션을 생략한다
+
+**누적 통계 변경:**
+- `랩업 총 N건` = `stats.session_summaries.global_total + 1` (현재 세션 포함)
+- `협업 총 Xh Ym` = `stats.session_summaries.total_elapsed_minutes + timing.elapsed_minutes` (현재 세션 포함)
+- `total_elapsed_minutes`가 0이고 현재 세션만 있을 때도 현재 세션의 elapsed를 표시
 
 `{change_hint}`는 "언어별 변경 힌트 매핑" 표에서 현재 언어에 해당하는 값을 사용한다.
 

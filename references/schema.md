@@ -47,6 +47,14 @@
       "bad_points": [],
       "improvements": ["평가 항목 세분화 검토"]
     }
+  },
+  "timing": {
+    "session_start": "2026-02-23T15:00:00",
+    "wrapup_start": "2026-02-23T17:30:00",
+    "segment_start": "2026-02-23T15:00:00",
+    "elapsed_minutes": 150,
+    "is_continuation": false,
+    "wrapup_number": 1
   }
 }
 ```
@@ -99,6 +107,19 @@
 
 이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
 
+### timing 필드
+
+`timing`은 v1.6.0에서 추가된 필드입니다. 세션 시간 측정 데이터입니다.
+
+- `session_start`: string — 세션 시작 시각 (로컬 ISO 8601, 세션 JSONL 첫 엔트리에서 추출)
+- `wrapup_start`: string — 랩업 시작 시각 (로컬 ISO 8601, = `date` 필드와 동일)
+- `segment_start`: string — 구간 시작 시각. 첫 번째 랩업이면 `session_start`와 동일, 두 번째 이상이면 직전 랩업 시각
+- `elapsed_minutes`: integer — `segment_start`부터 `wrapup_start`까지의 소요 시간 (분)
+- `is_continuation`: boolean — 같은 세션에서 두 번째 이상 랩업인지 여부
+- `wrapup_number`: integer — 이 세션에서 몇 번째 랩업인지 (1부터 시작)
+
+이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
+
 ### work_done 필드 하위 호환성
 
 `work_done`은 v1.2.0에서 추가된 필드입니다. 이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
@@ -133,6 +154,14 @@
   "session_name": "세션 이름",
   "project": "z:/_ai/skills/lesson-learned",
   "date": "2026-02-23T15:30:00",
+  "timing": {
+    "session_start": "2026-02-23T15:00:00",
+    "wrapup_start": "2026-02-23T17:30:00",
+    "segment_start": "2026-02-23T15:00:00",
+    "elapsed_minutes": 150,
+    "is_continuation": false,
+    "wrapup_number": 1
+  },
   "summary": {
     "info": ["정보 1", "정보 2"],
     "qa": [{ "q": "질문", "a": "답변" }],

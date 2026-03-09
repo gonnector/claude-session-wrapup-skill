@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.6.0] - 2026-03-09
+
+### Added
+- **세션 시간 측정**: 세션 시작 ~ 랩업 시점까지의 소요 시간 자동 기록
+  - `collect-meta.py`: 세션 JSONL 첫 엔트리 타임스탬프(UTC)를 로컬 시간으로 변환하여 세션 시작 시각 추출
+  - 같은 세션에서 두 번째 이상 랩업 시 직전 랩업 시각을 구간 시작으로 사용 (`is_continuation`, `wrapup_number`)
+  - `timing` 객체: `session_start`, `wrapup_start`, `segment_start`, `elapsed_minutes`, `is_continuation`, `wrapup_number`
+  - Step 9 완료 메시지에 "세션 시간" 섹션 추가 (시작 HH:MM │ 랩업 HH:MM │ 소요 Xh Ym)
+
+### Fixed
+- **`get_next_id()` ID 날짜 버그 수정** — 파일 마지막 ID에서 숫자만 +1하고 날짜 prefix를 무시하던 버그
+  - 원인: `re.sub(r"-\d+$", ...)` 로 숫자만 교체 → 첫날 날짜가 모든 후속 ID에 고정
+  - 수정: prefix 매칭 방식으로 변경 — 같은 날짜 prefix를 가진 기존 ID 중 최대 번호 + 1
+  - 영향: summaries 26건, user_lessons 158건, ai_lessons 167건 (총 351건의 ID가 틀린 날짜)
+- **기존 데이터 소급 정리** (일회성 마이그레이션)
+  - ID 재할당: 411건 중 358건의 ID를 실제 `date` 필드 기준으로 수정
+  - cc-general pretty-print 엔트리 compact화 (52줄 → 21줄 single-line JSONL)
+  - timing 소급 적용: 68건 중 66건 (2건 세션 파일 부재로 불가)
+- **`global_total` 카운팅 정확도** — 비정상 JSONL 줄(pretty-print 잔여물)을 dict만 카운트하도록 수정
+
+### Changed
+- **누적 통계 — 랩업 횟수를 전체 프로젝트 합산으로 변경**
+  - 기존: 현재 프로젝트의 세션 요약 수만 표시 (대부분 1건으로 표시되는 문제)
+  - 변경: `global_total` (전체 프로젝트 합산 랩업 수) + `total_elapsed_minutes` (누적 협업 시간) 추가
+  - Step 9 표시: `랩업 총 N건 │ 협업 총 Xh Ym`
+- `save-wrapup.py`: 세션 요약 엔트리에 `timing` 필드 포함하여 저장
+- `read-stats.py`: `global_total`, `total_elapsed_minutes` 집계 추가
+
+---
+
 ## [1.5.0] - 2026-03-09
 
 ### Added

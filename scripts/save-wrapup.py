@@ -44,11 +44,11 @@ def sanitize_project_path(project: str) -> str:
 
 
 def get_next_id(filepath: Path, prefix: str) -> str:
-    """기존 JSONL에서 마지막 ID를 읽어 다음 번호 할당."""
+    """같은 prefix(날짜 포함)를 가진 기존 ID 중 최대 번호 + 1을 반환."""
     if not filepath.exists() or filepath.stat().st_size == 0:
         return f"{prefix}-001"
 
-    last_id = None
+    max_num = 0
     with open(filepath, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
             line = line.strip()
@@ -58,17 +58,15 @@ def get_next_id(filepath: Path, prefix: str) -> str:
                 entry = json.loads(line)
                 if not isinstance(entry, dict):
                     continue
-                last_id = entry.get("id", "")
+                eid = entry.get("id", "")
+                if eid.startswith(prefix):
+                    match = re.search(r"-(\d+)$", eid)
+                    if match:
+                        max_num = max(max_num, int(match.group(1)))
             except json.JSONDecodeError:
                 continue
 
-    if last_id:
-        match = re.search(r"-(\d+)$", last_id)
-        if match:
-            next_num = int(match.group(1)) + 1
-            return re.sub(r"-\d+$", f"-{next_num:03d}", last_id)
-
-    return f"{prefix}-001"
+    return f"{prefix}-{max_num + 1:03d}"
 
 
 def append_jsonl(filepath: Path, entry: dict) -> None:
@@ -94,6 +92,7 @@ def build_summary_entry(data: dict, entry_id: str) -> dict:
         "work_done": summary.get("done", None),
         "action_items": summary.get("actions", []),
         "evaluation": data.get("evaluation", None),
+        "timing": data.get("timing", None),
     }
 
 

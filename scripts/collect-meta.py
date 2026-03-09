@@ -11,10 +11,18 @@ Usage:
         "project":      "Z:\\_ai\\skills\\wrapup",
         "session_id":   "...",
         "session_name": "...",
+        "timing": {
+            "session_start":   "2026-03-09T14:00:00",
+            "wrapup_start":    "2026-03-09T16:30:00",
+            "segment_start":   "2026-03-09T14:00:00",
+            "elapsed_minutes": 150,
+            "is_continuation": false,
+            "wrapup_number":   1
+        },
         "stats": {
             "user_lessons":      {"total": N, "categories": {...}},
             "ai_lessons":        {"total": N, "categories": {...}},
-            "session_summaries": {"total": N, "file": "..."}
+            "session_summaries": {"total": N, "global_total": N, "total_elapsed_minutes": N, "file": "..."}
         }
     }
 """
@@ -35,6 +43,16 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 USER_LESSONS_FILE = Path(r"Z:\_myself\lesson-learned\lessons.jsonl")
 AI_LESSONS_FILE   = Path(r"Z:\_ai\lesson-learned\lessons.jsonl")
 SESSION_SUMMARIES_DIR = Path(r"Z:\_ai\session-summaries")
+
+
+# ── 시간 헬퍼 ─────────────────────────────────────────────
+def _utc_to_local_naive(utc_str: str) -> datetime:
+    """UTC ISO string (Z 또는 +00:00 접미사) → 로컬 naive datetime."""
+    if utc_str.endswith("Z"):
+        utc_str = utc_str[:-1] + "+00:00"
+    utc_dt = datetime.fromisoformat(utc_str)
+    local_dt = utc_dt.astimezone()
+    return local_dt.replace(tzinfo=None)
 
 
 # ── 통계 헬퍼 ────────────────────────────────────────────
@@ -77,6 +95,33 @@ def _sanitize_project_path(project: str) -> str:
 def collect_stats(project_path: str) -> dict:
     project_slug = _sanitize_project_path(project_path)
     summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
+
+    # 글로벌 통계: 모든 프로젝트의 랩업 수 + 누적 협업 시간
+    global_total = 0
+    total_elapsed = 0
+    if SESSION_SUMMARIES_DIR.exists():
+        for summary_dir in SESSION_SUMMARIES_DIR.iterdir():
+            if not summary_dir.is_dir():
+                continue
+            sf = summary_dir / "summaries.jsonl"
+            if not sf.exists():
+                continue
+            with open(sf, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                        if not isinstance(entry, dict):
+                            continue
+                        global_total += 1
+                        timing = entry.get("timing")
+                        if timing and isinstance(timing, dict):
+                            total_elapsed += timing.get("elapsed_minutes", 0)
+                    except json.JSONDecodeError:
+                        continue
+
     return {
         "user_lessons": {
             "total": _count_jsonl(USER_LESSONS_FILE),
@@ -88,49 +133,89 @@ def collect_stats(project_path: str) -> dict:
         },
         "session_summaries": {
             "total": _count_jsonl(summary_file),
+            "global_total": global_total,
+            "total_elapsed_minutes": total_elapsed,
             "file": str(summary_file),
         },
     }
 
 
 # ── 세션 정보 헬퍼 ────────────────────────────────────────
+def _path_to_slug(path_str: str) -> str:
+    """프로젝트 경로를 Claude Code의 slug 형식으로 변환.
+    non-ASCII, 특수문자를 모두 개별 '-'로 치환 (축소 안 함 — Claude Code 동작 일치)."""
+    s = path_str.replace("\\", "/").rstrip("/")
+    s = re.sub(r"[^a-zA-Z0-9-]", "-", s)
+    return s
+
+
 def collect_session(project_path: str) -> dict:
-    last_component = Path(project_path).name
     claude_projects = Path.home() / ".claude" / "projects"
 
     if not claude_projects.exists():
-        return {"session_id": "", "session_name": "", "error": "Claude projects directory not found"}
+        return {"session_id": "", "session_name": "", "session_start": None,
+                "error": "Claude projects directory not found"}
 
-    matching_dirs = sorted(
-        [d for d in claude_projects.iterdir() if d.is_dir() and last_component.lower() in d.name.lower()],
-        key=lambda d: d.stat().st_mtime,
-        reverse=True,
-    )
-    if not matching_dirs:
-        return {"session_id": "", "session_name": "", "error": f"No project directory for: {last_component}"}
+    # cwd와 상위 경로들에 대해 slug 매칭을 시도하고,
+    # 모든 매칭 디렉토리에서 가장 최근 세션 파일을 선택한다.
+    # (Claude Code는 CLAUDE.md 위치를 프로젝트 루트로 사용하므로 cwd와 다를 수 있음)
+    path = Path(project_path)
+    candidates = [path] + list(path.parents)
+    all_matching_dirs = []
 
-    project_dir = matching_dirs[0]
-    jsonl_files = sorted(
-        project_dir.glob("*.jsonl"),
-        key=lambda f: f.stat().st_mtime,
-        reverse=True,
-    )
-    if not jsonl_files:
-        return {"session_id": "", "session_name": "", "error": "No session files found"}
+    for candidate in candidates:
+        slug = _path_to_slug(str(candidate))
+        for d in claude_projects.iterdir():
+            if d.is_dir() and d.name == slug and d not in all_matching_dirs:
+                all_matching_dirs.append(d)
 
-    session_file = jsonl_files[0]
+    if not all_matching_dirs:
+        return {"session_id": "", "session_name": "", "session_start": None,
+                "error": f"No project directory for: {project_path}"}
+
+    # 모든 매칭 디렉토리에서 JSONL 파일을 수집하고, 가장 최근 파일을 선택
+    all_jsonl = []
+    for d in all_matching_dirs:
+        all_jsonl.extend(d.glob("*.jsonl"))
+    all_jsonl.sort(key=lambda f: f.stat().st_mtime, reverse=True)
+    if not all_jsonl:
+        return {"session_id": "", "session_name": "", "session_start": None,
+                "error": "No session files found"}
+
+    session_file = all_jsonl[0]
     session_id   = session_file.stem
     session_name = ""
+    session_start = None
 
     try:
         with open(session_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
-        for line in reversed(lines):
-            line = line.strip()
-            if not line:
+
+        # 세션 시작 시각: 첫 20줄에서 가장 이른 timestamp 추출
+        for line in lines[:20]:
+            stripped = line.strip()
+            if not stripped:
                 continue
             try:
-                entry = json.loads(line)
+                entry = json.loads(stripped)
+                ts = entry.get("timestamp")
+                if not ts:
+                    snapshot = entry.get("snapshot")
+                    if isinstance(snapshot, dict):
+                        ts = snapshot.get("timestamp")
+                if ts:
+                    if session_start is None or ts < session_start:
+                        session_start = ts
+            except json.JSONDecodeError:
+                continue
+
+        # 세션명: 마지막 custom-title 엔트리에서 추출
+        for line in reversed(lines):
+            stripped = line.strip()
+            if not stripped:
+                continue
+            try:
+                entry = json.loads(stripped)
                 if entry.get("type") == "custom-title":
                     session_name = entry.get("customTitle", "")
                     break
@@ -139,17 +224,80 @@ def collect_session(project_path: str) -> dict:
     except Exception:
         pass
 
-    return {"session_id": session_id, "session_name": session_name}
+    return {"session_id": session_id, "session_name": session_name,
+            "session_start": session_start}
+
+
+# ── 시간 측정 ─────────────────────────────────────────────
+def collect_timing(session_id: str, session_start_utc: str,
+                   project_path: str, now: datetime) -> dict | None:
+    """세션 시간 측정 데이터를 수집한다."""
+    if not session_start_utc:
+        return None
+
+    session_start = _utc_to_local_naive(session_start_utc)
+
+    # 같은 세션에서 직전 wrapup이 있는지 확인
+    project_slug = _sanitize_project_path(project_path)
+    summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
+
+    prev_wrapup_dt = None
+    wrapup_count = 0
+
+    if summary_file.exists():
+        with open(summary_file, "r", encoding="utf-8") as f:
+            for line in f:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                try:
+                    entry = json.loads(stripped)
+                    if entry.get("session_id") == session_id:
+                        wrapup_count += 1
+                        entry_date = entry.get("date", "")
+                        if entry_date:
+                            dt = datetime.fromisoformat(entry_date)
+                            if prev_wrapup_dt is None or dt > prev_wrapup_dt:
+                                prev_wrapup_dt = dt
+                except json.JSONDecodeError:
+                    continue
+
+    is_continuation = prev_wrapup_dt is not None
+    segment_start = prev_wrapup_dt if is_continuation else session_start
+
+    elapsed = now - segment_start
+    elapsed_minutes = max(0, int(elapsed.total_seconds() / 60))
+
+    return {
+        "session_start": session_start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "wrapup_start": now.strftime("%Y-%m-%dT%H:%M:%S"),
+        "segment_start": segment_start.strftime("%Y-%m-%dT%H:%M:%S"),
+        "elapsed_minutes": elapsed_minutes,
+        "is_continuation": is_continuation,
+        "wrapup_number": wrapup_count + 1,
+    }
 
 
 # ── 메인 ─────────────────────────────────────────────────
 def main():
     project_path = os.getcwd()
+    now = datetime.now()
+
+    session_info = collect_session(project_path)
+    session_start_utc = session_info.pop("session_start", None)
+
+    timing = collect_timing(
+        session_info.get("session_id", ""),
+        session_start_utc,
+        project_path,
+        now,
+    )
 
     result = {
-        "date":    datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "date":    now.strftime("%Y-%m-%dT%H:%M:%S"),
         "project": project_path,
-        **collect_session(project_path),
+        **session_info,
+        "timing":  timing,
         "stats":   collect_stats(project_path),
     }
 

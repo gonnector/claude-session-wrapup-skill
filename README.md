@@ -7,6 +7,7 @@ A Claude Code skill that automatically records two layers of structured notes at
 - **Layer 1 — Session Summary**: info bullets, Q&A pairs, decisions with rationale, work done, action items
 - **Layer 2 — Lesson-Learned**: what the user learned, what the AI learned (separated by perspective)
 - **Layer 3 — Session Evaluation** (v1.4.0): AI self-assessment (5 sub-metrics) + user feedback — a meta-feedback loop for session quality improvement
+- **Session Timing** (v1.6.0): Automatic time tracking — session start, wrapup time, elapsed duration, cumulative collaboration hours
 
 Records are saved as JSONL — git-friendly, incrementally appendable, queryable.
 
@@ -120,6 +121,16 @@ Step 7  Save to JSONL (including evaluation data)
 Step 8  Auto memory sync — promote lessons to auto memory (v1.3.0)
 Step 9  Show completion message with evaluation summary + stats
 ```
+
+### Session Timing (v1.6.0)
+
+Each wrapup automatically records:
+
+- **Session start** — extracted from the session JSONL file's first entry timestamp (UTC → local)
+- **Wrapup start** — when `/wrapup` is invoked
+- **Elapsed time** — duration between start and wrapup (displayed as `Xh Ym`)
+- **Continuation support** — if wrapup is done twice in the same session, the segment starts from the previous wrapup time
+- **Cumulative stats** — total wrapup count and total collaboration hours across all projects
 
 ### Session Evaluation (v1.4.0)
 
