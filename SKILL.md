@@ -288,20 +288,60 @@ AskUserQuestion으로 확인:
 ### Step 5: 후속 작업 추천 + /todo 연동
 
 드래프트의 "다음에 이어볼 만한 작업" 추천과 "액션 아이템"을 /todo에 등록할지 제안한다.
+`/todo` Skill을 호출하지 않고, `register-todos.py`를 직접 호출하여 등록한다 (선택 중복 방지).
 
-**후속 작업 추천 3건:**
+**5-1: 등록 대상 통합 표시 + 선택**
 
-드래프트에 표시된 추천 작업을 다시 한 번 요약하고, /todo 등록 여부를 묻는다.
-
-**등록 대상 통합 — 액션 아이템 + 후속 추천:**
-
-AskUserQuestion으로 확인:
+액션 아이템과 후속 추천을 하나의 목록으로 표시하고, AskUserQuestion으로 확인:
 - "전부 등록 (액션 아이템 N건 + 추천 작업 M건)"
 - "선택해서 등록" → 개별 AskUserQuestion으로 확인 후 등록
-- "액션 아이템만 등록"
+- "액션 아이템만 등록" (추천 작업이 있을 때만 표시)
 - "나중에" → 건너뜀
 
-등록 시 각 항목을 `/todo` Skill 호출. `/todo` 호출 실패 시: 텍스트만 표시, 수동 등록 안내.
+액션 아이템 0건 + 추천 0건이면 이 단계를 건너뛴다.
+
+**5-2: 직접 등록 (선택 확정 후)**
+
+사용자 선택이 확정되면, `/todo` Skill을 호출하지 않고 직접 등록한다:
+
+① todo.xlsx에서 마지막 인덱스를 조회한다:
+```bash
+python -c "import openpyxl; wb = openpyxl.load_workbook('Z:/_myself/todo.xlsx'); ws = wb.active; rows = list(ws.iter_rows(min_row=2, values_only=True)); print(f'LAST_INDEX={rows[-1][0] if rows else \"td0000000000\"}'); print(f'TOTAL_ROWS={len(rows)}')" 2>/dev/null || echo "LAST_INDEX=td0000000000"
+```
+
+② 선택된 항목을 JSON으로 구성하여 Write 도구로 `$SKILL_DIR/scripts/.todo-tmp.json`에 저장한다.
+각 항목의 필드:
+- `index`: 마지막 인덱스 + 1부터 순차 부여 (예: `td0000000041`, `td0000000042`)
+- `category`: 세션 컨텍스트에서 추론 (기존 todo의 카테고리와 일관성 유지)
+- `title`: 항목 제목 (~20자)
+- `details`: 배경/목적/구체 내용 1-2문장
+- `status`: `"대기"`
+- `created`: Step 1의 date
+- `target_date`: `"미정"`
+- `deadline`: `"-"`
+- `notes`: 관련 참고사항, 없으면 `"-"`
+- `related`: 기존 todo 중 연관된 인덱스, 없으면 `"-"`
+- `context_folder`: Step 1의 project (forward slash 사용, backslash 금지)
+- `session_id`: Step 1의 session_id
+- `session_name`: Step 1의 session_name
+
+③ 등록 스크립트 실행:
+```bash
+python "$HOME/.claude/skills/todo/scripts/register-todos.py" --file "$SKILL_DIR/scripts/.todo-tmp.json"
+```
+
+④ 임시 파일 정리:
+```bash
+python -c "import os; os.remove(r'SKILL_DIR/scripts/.todo-tmp.json')"
+```
+
+⑤ 등록 결과를 간략히 표시:
+```
+  todo 등록 완료: td0000000041 [카테고리] 제목, td0000000042 [카테고리] 제목
+  현재 대기 중 todo: N건
+```
+
+등록 실패 시: 항목 텍스트만 표시, 수동 등록 안내.
 
 > **참고**: 후속 추천 작업의 발굴 품질은 이후 Step 6 세션 평가의 "학습 가치" 메트릭에 반영된다.
 
@@ -520,5 +560,5 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 | JSONL 파일 없음 (첫 실행) | 자동 생성 |
 | 저장 실패 | 드래프트 텍스트 출력 → 수동 저장 안내 |
 | 대화 컨텍스트 너무 짧음 | "추출할 학습 내용이 부족합니다" 안내 |
-| /todo 호출 실패 | 액션 아이템 + 추천 작업 텍스트만 표시, 수동 등록 안내 |
+| todo 등록 실패 | 액션 아이템 + 추천 작업 텍스트만 표시, 수동 등록 안내 |
 | 사용자 평가 전체 스킵 (빈 입력) | evaluation.user의 텍스트 필드를 빈 배열로 저장 (score는 필수) |
