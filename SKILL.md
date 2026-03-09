@@ -296,13 +296,38 @@ AskUserQuestion으로 확인:
 
 **5-1: 등록 대상 통합 표시 + 선택**
 
-액션 아이템과 후속 추천을 하나의 목록으로 표시하고, AskUserQuestion으로 확인:
-- "전부 등록 (액션 아이템 N건 + 추천 작업 M건)"
-- "선택해서 등록" → 개별 AskUserQuestion으로 확인 후 등록
-- "액션 아이템만 등록" (추천 작업이 있을 때만 표시)
-- "나중에" → 건너뜀
+액션 아이템과 후속 추천을 **순차 번호**로 통합 표시한다.
+번호는 액션 아이템 → 추천 작업 순서로 1부터 연속 부여:
+
+```
+  등록 대상:
+
+  액션 아이템 (N건)
+  1. [medium] 항목 제목
+  2. [low] 항목 제목
+
+  추천 작업 (M건)
+  3. 항목 제목
+  4. 항목 제목
+  5. 항목 제목
+```
+
+AskUserQuestion으로 선택 (단일 선택):
+- header: `ToDo 등록`
+- question: `"등록할 항목을 선택하세요. 번호 직접 입력도 가능합니다 (예: 1,3,5)"`
+- options:
+  - `"전부 등록 (N건)"` — description: 액션 아이템 + 추천 작업 모두
+  - `"액션 아이템만 (A건)"` — description: 액션 아이템만
+  - `"추천 작업만 (R건)"` — description: 추천 작업만
+  - `"나중에"` — description: 건너뜀
+
+사용자가 "Other"로 쉼표 구분 번호를 입력하면(예: `1,3,5`) 해당 번호 항목만 등록한다.
 
 액션 아이템 0건 + 추천 0건이면 이 단계를 건너뛴다.
+
+**채택/도출 카운트 추적**: Step 5 실행 중 아래 값을 기억하여 Step 9에서 사용한다.
+- `total_actions` / `adopted_actions` — 도출/채택 액션 아이템 건수
+- `total_recommendations` / `adopted_recommendations` — 도출/채택 추천 아이디어 건수
 
 **5-2: 직접 등록 (선택 확정 후)**
 
@@ -531,28 +556,34 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 ### Step 9: 완료 메시지
 
 저장 결과, 평가 요약, 누적 통계를 아래 형식으로 표시한다.
-한/영 혼용 시 좌우 세로선은 문자 폭 차이로 정렬이 어긋나므로 사용하지 않는다.
-가로선으로만 구역을 구분하고, 같은 줄 내 항목 구분 세로선(│)은 그대로 사용한다.
+가로선으로 구역을 구분하고, 같은 줄 내 항목 구분 세로선(│)은 그대로 사용한다.
+섹션 제목은 `**▸ 제목**` (볼드 + 기호)으로 표시하고, 내용은 2칸 들여쓰기한다.
+
+**주의: 아래 템플릿은 실제 마크다운으로 출력한다. 코드블록으로 감싸지 않는다.**
 
 ```
 ─────────────────────────────────────────────────────────────────
-  세션 랩업 완료!
+## [랩업 완료] {session_name}
 ─────────────────────────────────────────────────────────────────
-  세션 시간
+**▸ 세션 시간**
   시작 HH:MM  │  랩업 HH:MM  │  소요 Xh Ym
 ─────────────────────────────────────────────────────────────────
-  저장됨
-  ├─ 세션 요약    {저장 경로}/summaries.jsonl
-  ├─ 사용자 학습  N건
-  ├─ AI 학습      N건
-  └─ auto memory  N건 승격 (auto memory 동기화가 실행된 경우에만 표시)
+**▸ 학습/기억**
+  사용자 학습 N건  │  AI 학습 N건  │  auto memory N건 승격
 ─────────────────────────────────────────────────────────────────
-  세션 평가
+**▸ ToDo**
+  액션 아이템     채택 N건 / 도출 M건
+  추천 아이디어   채택 X건 / 도출 Y건
+  등록 합계       A건 / B건
+─────────────────────────────────────────────────────────────────
+**▸ 세션 평가**
   AI     목표 ★★★★★  소통 ★★★★☆  기술 ★★★☆☆  흐름 ★★★☆☆  학습 ★★★★☆
   사용자  ★★★★☆  4/5
 ─────────────────────────────────────────────────────────────────
-  누적 통계
-  사용자 학습 총 N건  │  AI 학습 총 N건  │  랩업 총 N건  │  협업 총 Xh Ym
+**▸ 누적 통계**
+  세션 N건  │  랩업 N건  │  협업 Xh Ym
+  사용자 학습 N건  │  AI 학습 N건
+  ToDo  활성 N건  │  진행 N건 (x%)  │  대기 N건 (z%)
 ─────────────────────────────────────────────────────────────────
   {language_label}: {language_name}  │  변경: {change_hint}
 ─────────────────────────────────────────────────────────────────
@@ -562,16 +593,40 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 - `시작`/`랩업` 시각은 `timing.segment_start`/`timing.wrapup_start`의 HH:MM 부분
 - `소요`는 `timing.elapsed_minutes`를 `Xh Ym` 형식으로 변환 (1시간 미만이면 `Ym`만 표시)
 - 같은 세션에서 2번째 이상 랩업인 경우 (`timing.is_continuation == true`):
-  ```
-  세션 시간 (N번째 랩업)
-  세션 시작 HH:MM  │  구간 시작 HH:MM  │  랩업 HH:MM  │  구간 소요 Xh Ym
-  ```
+  `**▸ 세션 시간 (N번째 랩업)**` + `세션 시작 HH:MM  │  구간 시작 HH:MM  │  랩업 HH:MM  │  구간 소요 Xh Ym`
 - `timing`이 `null`이면 세션 시간 섹션을 생략한다
 
-**누적 통계 변경:**
-- `랩업 총 N건` = `stats.session_summaries.global_total + 1` (현재 세션 포함)
-- `협업 총 Xh Ym` = `stats.session_summaries.total_elapsed_minutes + timing.elapsed_minutes` (현재 세션 포함)
-- `total_elapsed_minutes`가 0이고 현재 세션만 있을 때도 현재 세션의 elapsed를 표시
+**학습/기억 섹션 규칙:**
+- auto memory 승격이 0건이면 해당 항목을 생략하여 2개 항목만 표시
+- 사용자 학습, AI 학습이 모두 0건이면 섹션 자체를 생략
+
+**ToDo 섹션 규칙:**
+- `채택` = Step 5에서 사용자가 등록을 선택한 건수
+- `도출` = 드래프트에서 추출된 전체 건수
+- `등록 합계` = 채택 액션 + 채택 추천 / 도출 액션 + 도출 추천
+- Step 5를 건너뛴 경우 (액션 0건 + 추천 0건) ToDo 섹션을 생략
+- Step 5에서 "나중에"를 선택한 경우: `채택 0건 / 도출 N건` 으로 표시
+
+**누적 통계 규칙:**
+- `세션 N건` = `stats.session_summaries.unique_sessions + 1` (현재 세션이 새 세션인 경우 +1, 같은 세션의 추가 랩업이면 +0)
+- `랩업 N건` = `stats.session_summaries.global_total + 1` (현재 세션 포함)
+- `협업 Xh Ym` = `stats.session_summaries.total_elapsed_minutes + timing.elapsed_minutes` (현재 세션 포함)
+- ToDo 상태별 건수는 Step 9 시점에 todo.xlsx를 직접 조회한다 (Step 5 등록 반영):
+  ```bash
+  python -c "
+  import openpyxl, json
+  wb = openpyxl.load_workbook('Z:/_myself/todo.xlsx')
+  ws = wb.active
+  counts = {}
+  for row in ws.iter_rows(min_row=2, values_only=True):
+      s = row[4] if len(row) > 4 and row[4] else 'unknown'
+      counts[s] = counts.get(s, 0) + 1
+  print(json.dumps(counts, ensure_ascii=False))
+  "
+  ```
+- `활성` = 전체 − 완료 (대기 + 진행 중 등 미완료 항목의 합)
+- `진행 N건 (x%)` — x% = 진행 / 활성, 소수점 버림
+- `대기 N건 (z%)` — z% = 대기 / 활성, 소수점 버림
 
 `{change_hint}`는 "언어별 변경 힌트 매핑" 표에서 현재 언어에 해당하는 값을 사용한다.
 

@@ -77,9 +77,10 @@ def main():
         },
     }
 
-    # 글로벌 통계: 모든 프로젝트의 랩업 수 + 누적 협업 시간
+    # 글로벌 통계: 모든 프로젝트의 랩업 수 + 누적 협업 시간 + 고유 세션 수
     global_total = 0
     total_elapsed = 0
+    unique_session_ids = set()
     if SESSION_SUMMARIES_DIR.exists():
         for summary_dir in SESSION_SUMMARIES_DIR.iterdir():
             if not summary_dir.is_dir():
@@ -97,6 +98,9 @@ def main():
                         if not isinstance(entry, dict):
                             continue
                         global_total += 1
+                        sid = entry.get("session_id", "")
+                        if sid:
+                            unique_session_ids.add(sid)
                         timing = entry.get("timing")
                         if timing and isinstance(timing, dict):
                             total_elapsed += timing.get("elapsed_minutes", 0)
@@ -109,12 +113,14 @@ def main():
         stats["session_summaries"] = {
             "total": count_jsonl(summary_file),
             "global_total": global_total,
+            "unique_sessions": len(unique_session_ids),
             "total_elapsed_minutes": total_elapsed,
             "file": str(summary_file),
         }
     else:
         stats["session_summaries"] = {
             "global_total": global_total,
+            "unique_sessions": len(unique_session_ids),
             "total_elapsed_minutes": total_elapsed,
         }
 
