@@ -35,7 +35,7 @@ Add the following to your **global** Claude Code settings (`~/.claude/settings.j
 
 ### Why only `python`?
 
-The skill calls Python scripts at four points (Steps 0, 1, 5). Other tools used during the workflow — `Read`, `Glob`, `Bash(date:*)`, `Bash(pwd:*)` — are auto-approved by Claude Code in default mode because they are non-destructive read-only or trivial operations.
+The skill calls Python scripts at four points (Steps 0, 1, 7). Other tools used during the workflow — `Read`, `Glob`, `Bash(date:*)`, `Bash(pwd:*)` — are auto-approved by Claude Code in default mode because they are non-destructive read-only or trivial operations.
 
 | Step | Tool | Command |
 |------|------|---------|
@@ -44,7 +44,7 @@ The skill calls Python scripts at four points (Steps 0, 1, 5). Other tools used 
 | 1 | `Bash(pwd:*)` | get project path — auto-approved |
 | 1 | `Bash(python:*)` | `read-stats.py` |
 | 1 | `Read` / `Glob` | scan `~/.claude/projects/` session files — auto-approved |
-| 6 | `Bash(python:*)` | `python -c "importlib..."` save to JSONL |
+| 7 | `Bash(python:*)` | `python -c "importlib..."` save to JSONL |
 
 > **Project-level vs global:** The skill's own repo contains `.claude/settings.local.json` for development use only. For the skill to work across all your projects, add `Bash(python:*)` to `~/.claude/settings.json` (global).
 
@@ -111,13 +111,13 @@ Settings are stored at: `~/.claude/skill-settings/wrapup/settings.json`
 ```
 Step 0  Language check (silent after first run)
 Step 1  Collect session metadata
-Step 2  Analyze conversation → draft 2-layer summary (with auto memory dedup check)
-Step 3  Show draft + confirm (AskUserQuestion)
+Step 2  Analyze conversation → draft 2-layer summary + follow-up recommendations (with auto memory dedup check)
+Step 3  Show draft + confirm (AskUserQuestion) — includes "What to work on next" recommendations
 Step 4  Edit loop (if changes requested)
-Step 5  Session evaluation — AI self-assessment + user feedback (v1.4.0)
-Step 6  Save to JSONL (including evaluation data)
-Step 7  Auto memory sync — promote lessons to auto memory (v1.3.0)
-Step 8  Offer to register action items in /todo
+Step 5  Follow-up recommendations + /todo registration (v1.5.0)
+Step 6  Session evaluation — AI self-assessment + user feedback (v1.4.0)
+Step 7  Save to JSONL (including evaluation data)
+Step 8  Auto memory sync — promote lessons to auto memory (v1.3.0)
 Step 9  Show completion message with evaluation summary + stats
 ```
 
@@ -154,6 +154,7 @@ wrapup/
 │   └── schema.md                 ← JSONL schema definitions
 └── docs/
     ├── prd.md                    ← Product Requirements Document
+    ├── dev-journal.md            ← Development journal (decisions + context)
     ├── plans/
     │   └── 2026-02-23-wrapup-skill-design.md
     └── research/

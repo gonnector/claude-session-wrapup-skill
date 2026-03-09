@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.5.0] - 2026-03-09
+
+### Added
+- **후속 작업 추천 (다음에 이어볼 만한 작업)**: 글로벌 CLAUDE.md에서 /wrapup 스킬로 이관
+  - Step 2: 대화 분석 시 연계 태스크 3건 추출 (interests.md 교차 참조 포함)
+  - Step 3: 드래프트에 `◇ 다음에 이어볼 만한 작업` 섹션 추가
+  - Step 5 (신규): 후속 추천 + 액션 아이템을 /todo로 통합 등록 제안
+
+### Changed
+- **스텝 순서 재구성**: /todo 연동(구 Step 8)을 세션 평가(구 Step 5) 앞으로 이동
+  - 이유: todo 발굴 품질을 세션 평가의 학습 가치 메트릭에 반영
+  - 기존 Step 5(세션 평가) → Step 6, Step 6(저장) → Step 7, Step 7(Auto Memory) → Step 8
+  - 기존 Step 8(/todo)은 새 Step 5에 통합되어 제거
+  - 서브 스텝 라벨: 5a-5d → 6a-6d
+- 글로벌 CLAUDE.md에서 "태스크 완료 후 연계 제안" 섹션 제거 (wrapup 전용으로 이관)
+
+### Removed
+- 기존 Step 8 (/todo 연동 제안) — Step 5에 통합
+
+---
+
 ## [1.4.4] - 2026-03-09
 
 ### Changed

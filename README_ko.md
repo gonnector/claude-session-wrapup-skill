@@ -35,7 +35,7 @@
 
 ### `python`만 등록하면 되는 이유
 
-스킬은 Step 0·1·5에서 Python 스크립트를 총 4회 호출합니다. 그 외 사용되는 도구들(`Read`, `Glob`, `Bash(date:*)`, `Bash(pwd:*)`)은 파괴적이지 않은 읽기 전용 또는 단순 명령어로, Claude Code 기본 모드에서 자동 승인됩니다.
+스킬은 Step 0·1·7에서 Python 스크립트를 총 4회 호출합니다. 그 외 사용되는 도구들(`Read`, `Glob`, `Bash(date:*)`, `Bash(pwd:*)`)은 파괴적이지 않은 읽기 전용 또는 단순 명령어로, Claude Code 기본 모드에서 자동 승인됩니다.
 
 | Step | 도구 | 명령 |
 |------|------|------|
@@ -44,7 +44,7 @@
 | 1 | `Bash(pwd:*)` | 프로젝트 경로 수집 — 자동 승인 |
 | 1 | `Bash(python:*)` | `read-stats.py` 실행 |
 | 1 | `Read` / `Glob` | `~/.claude/projects/` 세션 파일 탐색 — 자동 승인 |
-| 6 | `Bash(python:*)` | `python -c "importlib..."` JSONL 저장 |
+| 7 | `Bash(python:*)` | `python -c "importlib..."` JSONL 저장 |
 
 > **프로젝트별 vs 전역:** 스킬 레포의 `.claude/settings.local.json`은 개발용 파일입니다. 모든 프로젝트에서 스킬이 동작하려면 `~/.claude/settings.json`(전역)에 `Bash(python:*)`를 추가하세요.
 
@@ -111,13 +111,13 @@ ln -s /path/to/wrapup ~/.claude/skills/wrapup
 ```
 Step 0  언어 설정 확인 (최초 이후 무음)
 Step 1  세션 메타정보 수집
-Step 2  대화 분석 → 2계층 드래프트 생성 (auto memory 중복 확인 포함)
-Step 3  드래프트 표시 + 확인 (AskUserQuestion)
+Step 2  대화 분석 → 2계층 드래프트 생성 + 후속 작업 추천 (auto memory 중복 확인 포함)
+Step 3  드래프트 표시 + 확인 (AskUserQuestion) — "다음에 이어볼 만한 작업" 추천 포함
 Step 4  수정 루프 (변경 요청 시)
-Step 5  세션 평가 — AI 자기 진단 + 사용자 피드백 (v1.4.0)
-Step 6  JSONL 저장 (평가 데이터 포함)
-Step 7  Auto Memory 동기화 — lesson을 auto memory로 승격 제안 (v1.3.0)
-Step 8  액션 아이템 /todo 등록 제안
+Step 5  후속 작업 추천 + /todo 연동 (v1.5.0)
+Step 6  세션 평가 — AI 자기 진단 + 사용자 피드백 (v1.4.0)
+Step 7  JSONL 저장 (평가 데이터 포함)
+Step 8  Auto Memory 동기화 — lesson을 auto memory로 승격 제안 (v1.3.0)
 Step 9  완료 메시지 + 평가 요약 + 누적 통계 표시
 ```
 
@@ -154,6 +154,7 @@ wrapup/
 │   └── schema.md                 ← JSONL 스키마 정의
 └── docs/
     ├── prd.md                    ← 제품 요구사항 정의서
+    ├── dev-journal.md            ← 개발 저널 (의사결정 + 맥락)
     ├── plans/
     │   └── 2026-02-23-wrapup-skill-design.md
     └── research/

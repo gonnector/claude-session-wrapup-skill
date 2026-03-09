@@ -1,6 +1,6 @@
 # /wrapup — Product Requirements Document
 
-> Version: 1.4.0-draft | Last Updated: 2026-03-02
+> Version: 1.5.0-draft | Last Updated: 2026-03-09
 
 ---
 
@@ -49,6 +49,7 @@ Z:\_ai\skills\wrapup\
 │   └── schema.md               ← JSONL 스키마 정의 + 예시
 └── docs/
     ├── prd.md                  ← 이 문서
+    ├── dev-journal.md          ← 개발 저널 (의사결정 + 맥락)
     ├── plans/
     │   └── 2026-02-23-wrapup-skill-design.md  ← 초기 설계 결정 로그
     └── research/
@@ -69,17 +70,17 @@ Z:\_ai\skills\wrapup\
 ### 2.3 데이터 흐름
 
 ```
-세션 대화 → [Step 2: AI 분석] → 2계층 드래프트
+세션 대화 → [Step 2: AI 분석] → 2계층 드래프트 + 후속 추천
                                     ↓
                              [Step 3-4: 확인/수정]
                                     ↓
-                             [Step 5: 세션 평가]
+                             [Step 5: 후속 추천 + /todo 연동]
                                     ↓
-                             [Step 6: JSONL 저장] → 3개 파일
+                             [Step 6: 세션 평가]
                                     ↓
-                             [Step 7: Auto Memory 동기화]
+                             [Step 7: JSONL 저장] → 3개 파일
                                     ↓
-                             [Step 8: /todo 연동]
+                             [Step 8: Auto Memory 동기화]
                                     ↓
                              [Step 9: 완료 메시지]
 ```
@@ -177,10 +178,19 @@ AI 서브 메트릭은 시각적 별(★/☆) 형태로 표시하되, JSONL에�
 - **Auto Memory → Lesson**: 이미 기록된 사실은 `[📝 auto memory]` 태그로 중복 표시, lesson은 맥락 중심으로 경량화
 - `memory_ref` 필드로 auto memory 파일 참조 추적
 
-### 3.5 /todo 연동
+### 3.5 후속 작업 추천 + /todo 연동 (v1.5.0)
 
-액션 아이템이 있으면 `/todo` 스킬로 할 일 등록을 제안.
-전부 등록 / 선택 등록 / 나중에 3가지 옵션.
+세션에서 완료한 작업을 바탕으로 연계 태스크 3건을 추천하고, 액션 아이템과 함께 `/todo` 등록을 제안한다.
+
+**추천 조건:**
+- 방금 완료한 작업에서 자연스럽게 이어지는 후속 작업
+- 작업 중 발견한 개선 기회나 잠재 이슈
+- 같은 맥락에서 효율을 높일 수 있는 관련 작업
+- 사용자 관심사/활성 작업과의 교차점 (`interests.md` 참조)
+
+**등록 옵션:** 전부 등록 (액션 아이템 + 추천) / 선택 등록 / 액션 아이템만 / 나중에.
+
+**설계 의도:** todo 발굴(추천) 품질이 이후 세션 평가(Step 6)의 학습 가치 메트릭에 반영되도록, 평가 전에 배치.
 
 ### 3.6 Improvement Lifecycle — 졸업 시스템 (v1.4.1+)
 
@@ -238,7 +248,7 @@ MEMORY.md에는 상위 10개만 유지.
 
 #### 반복 탐지 표시
 
-Step 5에서 AI 개선점 생성 시, 기존 JSONL에서 같은 tag를 발견하면:
+Step 6에서 AI 개선점 생성 시, 기존 JSONL에서 같은 tag를 발견하면:
 
 ```
   개선 사항
@@ -396,39 +406,39 @@ NNN: 해당 일자 내 순번 (001부터 시작, 기존 JSONL의 마지막 ID �
 
 ## 5. 워크플로우 개요
 
-v1.4.0 기준 10단계 (Step 0 ~ Step 9).
+v1.5.0 기준 10단계 (Step 0 ~ Step 9).
 각 단계의 상세 실행 지시는 `SKILL.md` 참조.
 
 | Step | 이름 | 유형 | 설명 |
 |------|------|------|------|
 | 0 | 언어 설정 | 자동/대화 | 기존 설정 읽기 또는 최초/변경 시 언어 선택 |
 | 1 | 메타정보 수집 | 자동 | collect-meta.py로 날짜, 프로젝트, 세션ID/명, 통계 수집 |
-| 2 | 드래프트 생성 | 자동 | 대화 분석 → 2계층 드래프트 + auto memory 중복 확인 |
-| 3 | 드래프트 확인 | 대화 | 통합 드래프트 표시 → 확인/수정/부분기록 선택 |
+| 2 | 드래프트 생성 | 자동 | 대화 분석 → 2계층 드래프트 + 후속 추천 + auto memory 중복 확인 |
+| 3 | 드래프트 확인 | 대화 | 통합 드래프트 표시 (후속 추천 포함) → 확인/수정/부분기록 선택 |
 | 4 | 수정 루프 | 대화 | "수정 필요" 시 반영 → Step 3 반복 |
-| **5** | **세션 평가** | **자동+대화** | **AI 자기 진단 표시 → 사용자 평가 입력** |
-| 6 | 저장 | 자동 | save-wrapup.py로 3개 JSONL에 저장 (evaluation 포함) |
-| 7 | Auto Memory 동기화 | 대화 | lesson → auto memory 승격 제안 |
-| 8 | /todo 연동 | 대화 | 액션 아이템 → 할 일 등록 제안 |
+| **5** | **후속 추천 + /todo** | **대화** | **연계 추천 + 액션 아이템 → /todo 등록 제안** |
+| 6 | 세션 평가 | 자동+대화 | AI 자기 진단 표시 → 사용자 평가 입력 |
+| 7 | 저장 | 자동 | save-wrapup.py로 3개 JSONL에 저장 (evaluation 포함) |
+| 8 | Auto Memory 동기화 | 대화 | lesson → auto memory 승격 제안 |
 | 9 | 완료 메시지 | 자동 | 저장 결과 + 평가 요약 + 누적 통계 표시 |
 
-### Step 5 세션 평가 흐름 상세
+### Step 6 세션 평가 흐름 상세
 
 ```
-Step 5 시작
+Step 6 시작
     │
-    ├─ 5a: AI 자기 진단 생성 (자동)
+    ├─ 6a: AI 자기 진단 생성 (자동)
     │   └─ 대화 컨텍스트 기반으로 5개 서브 메트릭 (각 score + reason) + improvements (tag + text)
     │
-    ├─ 5b: AI 평가 표시 (★/☆ 시각 + reason 한 줄)
+    ├─ 6b: AI 평가 표시 (★/☆ 시각 + reason 한 줄)
     │
-    ├─ 5c: 사용자 점수 (AskUserQuestion)
+    ├─ 6c: 사용자 점수 (AskUserQuestion)
     │   └─ 1-5 단일 선택
     │
-    ├─ 5d: 사용자 텍스트 피드백 (AskUserQuestion 3-question 일괄)
+    ├─ 6d: 사용자 텍스트 피드백 (AskUserQuestion 3-question 일괄)
     │   └─ 좋았던 점 / 아쉬운 점 / 개선 사항 — 각각 "비워두기" / "AI 추출" / Other
     │
-    └─ Step 6으로 진행
+    └─ Step 7으로 진행
 ```
 
 ---
@@ -459,6 +469,8 @@ Step 5 시작
 | 평가 위치 | Save 전 (Step 5) | JSONL append-only 특성상 한 번에 원자적 저장 |
 | AI 평가 구조 | 5개 서브 메트릭 (score+reason) + improvements (tag+text) | overall_score 없음 — 서브 메트릭이 곧 평가 자체. tag로 반복 탐지 가능 |
 | 사용자 평가 구조 | 종합 점수 + good/bad/improvements 각각 | AskUserQuestion 3-question 일괄, "비워두기"/"AI 추출"/Other |
+| 후속 추천 위치 | 세션 평가 전 (Step 5) | todo 발굴 품질을 평가에 반영, 추천→등록 자연스러운 흐름 |
+| 후속 추천 소스 | 글로벌 CLAUDE.md → wrapup 이관 | 매 세션 컨텍스트 점유 방지, wrapup 시에만 발동 |
 | 드래프트 포맷 | 가로선 + 들여쓰기 | CJK 문자 double-width로 좌우 세로선 정렬 불가 |
 | 다국어 | 자동 감지 + 저장 설정 | 최초 1회 선택 후 매번 무음 적용 |
 
@@ -488,7 +500,8 @@ Step 5 시작
 | v1.1.0 | 2026-02-24 | 다국어 지원 (자동 감지 + 변경 가능) |
 | v1.2.0 | 2026-02-24 | `work_done` 필드 추가, 학습 유형 분류 체계 개편 |
 | v1.3.0 | 2026-03-01 | Auto Memory 연동 (중복 방지 + 양방향 동기화) |
-| **v1.4.0** | **TBD** | **세션 평가 기능 (AI 서브 메트릭 + 사용자 평가 + improvement tag)** |
-| v1.4.1 | TBD | Improvement Lifecycle (반복 탐지 + 졸업 시스템) |
+| v1.4.0 | 2026-03-02 | 세션 평가 기능 (AI 서브 메트릭 + 사용자 평가 + improvement tag) |
+| **v1.5.0** | **2026-03-09** | **후속 작업 추천 이관 + /todo 통합 + 스텝 순서 재구성** |
+| v1.5.1 | TBD | Improvement Lifecycle (반복 탐지 + 졸업 시스템) |
 
 상세 변경 이력은 `CHANGELOG.md` 참조.
