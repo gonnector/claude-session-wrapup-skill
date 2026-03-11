@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.7.1] - 2026-03-12
+
+### Fixed
+- **Step 5 ToDo 등록 항목 목록 가림 현상 수정** — 항목 목록을 별도 텍스트 출력에서 AskUserQuestion의 question 필드 안으로 이동하여 오버레이에 가려지지 않도록 개선
+
+---
+
 ## [1.7.0] - 2026-03-09
 
 ### Changed
