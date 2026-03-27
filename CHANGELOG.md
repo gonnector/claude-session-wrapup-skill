@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.8.0] - 2026-03-27
+
+### Added
+- **멀티에이전트 지원** — `CLAUDE_AGENT_NAME` 환경변수 기반 에이전트 식별
+  - 에이전트 세션: 세션 요약 → `$AI_ROOT/agents/{agent}/wrapup/sessions/`, AI 학습 → `$AI_ROOT/agents/{agent}/wrapup/lessons.jsonl`
+  - 비에이전트 세션: 기존 경로 유지 (하위호환)
+  - User 학습은 중앙 파일 유지 (Dylan은 1명)
+- JSONL 스키마에 `agent` 필드 추가 (모든 엔트리)
+- 에이전트별 ID 접두사 (`ws-{agent}-`, `ll-ai-{agent}-`)
+- 글로벌 통계에 모든 에이전트 폴더 합산 포함
+- Step 9 완료 메시지에 에이전트 배지 표시 (`[AGENT_NAME]`)
+
+### Changed
+- `save-wrapup.py` — 경로 분기 + agent 필드 + ID 체계
+- `collect-meta.py` — agent 환경변수 읽기, 통계/타이밍 경로 분기
+- `read-stats.py` — `--agent` 인자 추가, 에이전트별 통계
+- `schema.md` — 에이전트별 경로, agent 필드, ID 체계 문서화
+- `SKILL.md` — Step 1, 7, 9에 agent 로직 추가
+
+---
+
 ## [1.7.1] - 2026-03-12
 
 ### Fixed

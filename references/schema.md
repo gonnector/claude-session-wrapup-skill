@@ -2,21 +2,36 @@
 
 ## 파일 위치
 
+### 비에이전트 세션 (기존 — 하위호환)
+
 | 데이터 | 경로 |
 |--------|------|
-| 세션 요약 | `Z:\_ai\session-summaries\{project-slug}\summaries.jsonl` |
-| 사용자 학습 | `Z:\_myself\lesson-learned\lessons.jsonl` |
-| AI 학습 | `Z:\_ai\lesson-learned\lessons.jsonl` |
+| 세션 요약 | `E:\0\_ai\session-summaries\{project-slug}\summaries.jsonl` |
+| 사용자 학습 | `E:\0\_myself\lesson-learned\lessons.jsonl` |
+| AI 학습 | `E:\0\_ai\lesson-learned\lessons.jsonl` |
+
+### 에이전트 세션 (`CLAUDE_AGENT_NAME` 존재 시)
+
+| 데이터 | 경로 |
+|--------|------|
+| 세션 요약 | `$AI_ROOT/agents/{agent}/wrapup/sessions/{project-slug}.jsonl` |
+| AI 학습 | `$AI_ROOT/agents/{agent}/wrapup/lessons.jsonl` |
+| 사용자 학습 | `E:\0\_myself\lesson-learned\lessons.jsonl` (**변경 없음** — Dylan은 1명) |
+
+- `{agent}` = `CLAUDE_AGENT_NAME` 환경변수의 소문자 값 (예: `jarvis`, `eve`, `tars`)
+- `$AI_ROOT` = `Z:/_ai` (환경변수 또는 하드코딩)
+- 에이전트 세션에서 AI 학습은 에이전트 자기 폴더에 저장 → 동시 쓰기 충돌 구조적 제거
 
 ## 세션 요약 스키마
 
 ```jsonl
 {
   "id": "ws-20260223-001",
+  "agent": null,
   "date": "2026-02-23T15:30:00",
   "session_id": "abc-123",
   "session_name": "lesson-learned 시스템 설계",
-  "project": "z:/_ai/skills/lesson-learned",
+  "project": "e:/0/_ai/skills/lesson-learned",
   "info_summary": ["핵심 정보 불릿 1", "핵심 정보 불릿 2"],
   "qa_pairs": [
     { "q": "질문", "a": "답변" }
@@ -64,10 +79,11 @@
 ```jsonl
 {
   "id": "ll-user-20260223-001",
+  "agent": null,
   "date": "2026-02-23T15:30:00",
   "session_id": "abc-123",
   "session_name": "세션 이름",
-  "project": "z:/_ai/skills/lesson-learned",
+  "project": "e:/0/_ai/skills/lesson-learned",
   "type": "user_question_answer",
   "category": "system-design",
   "title": "학습 제목",
@@ -124,13 +140,24 @@
 
 `work_done`은 v1.2.0에서 추가된 필드입니다. 이전 레코드에는 해당 필드가 없으며, 없는 경우 `null`로 간주합니다.
 
+### agent 필드
+
+v1.8.0에서 추가된 필드입니다. 기록한 에이전트를 식별합니다.
+
+- 에이전트 세션: 소문자 에이전트명 (예: `"jarvis"`, `"tars"`)
+- 비에이전트 세션: `null`
+- **하위호환**: 이전 레코드에 `agent` 필드가 없으면 `null`로 간주
+
 ### ID 접두사
 
-| 데이터 | 접두사 | 예시 |
-|--------|--------|------|
-| 세션 요약 | `ws-` | `ws-20260223-001` |
-| 사용자 학습 | `ll-user-` | `ll-user-20260223-001` |
-| AI 학습 | `ll-ai-` | `ll-ai-20260223-001` |
+| 데이터 | 비에이전트 | 에이전트 |
+|--------|-----------|---------|
+| 세션 요약 | `ws-YYYYMMDD-NNN` | `ws-{agent}-YYYYMMDD-NNN` |
+| 사용자 학습 | `ll-user-YYYYMMDD-NNN` | `ll-user-YYYYMMDD-NNN` (변경 없음) |
+| AI 학습 | `ll-ai-YYYYMMDD-NNN` | `ll-ai-{agent}-YYYYMMDD-NNN` |
+
+에이전트 세션에서 ID에 에이전트명을 포함하여 파일이 분리되어도 글로벌 유니크성을 보장합니다.
+User 학습 ID는 변경하지 않습니다 (중앙 파일에 계속 append, `agent` 필드로 출처 추적).
 
 ### 학습 유형 (type)
 
@@ -152,7 +179,8 @@
 {
   "session_id": "abc-123",
   "session_name": "세션 이름",
-  "project": "z:/_ai/skills/lesson-learned",
+  "project": "e:/0/_ai/skills/lesson-learned",
+  "agent": "jarvis",
   "date": "2026-02-23T15:30:00",
   "timing": {
     "session_start": "2026-02-23T15:00:00",

@@ -88,12 +88,13 @@ python "$SKILL_DIR/scripts/collect-meta.py"
 반환 JSON 필드:
 - `date` — 현재 시각 (ISO 8601)
 - `project` — 프로젝트 경로
+- `agent` — 에이전트명 (소문자) 또는 `null` (비에이전트 세션). `CLAUDE_AGENT_NAME` 환경변수에서 자동 추출
 - `session_id` — 세션 UUID
 - `session_name` — 세션명 (`/rename`으로 설정한 이름)
 - `timing` — 세션 시간 측정 (`session_start`, `wrapup_start`, `segment_start`, `elapsed_minutes`, `is_continuation`, `wrapup_number`)
 - `stats` — 누적 통계 (user_lessons / ai_lessons / session_summaries)
-  - `stats.session_summaries.total` — 현재 프로젝트 랩업 수
-  - `stats.session_summaries.global_total` — 전체 프로젝트 합산 랩업 수
+  - `stats.session_summaries.total` — 현재 프로젝트 랩업 수 (에이전트 세션이면 해당 에이전트 폴더 기준)
+  - `stats.session_summaries.global_total` — 전체 프로젝트 합산 랩업 수 (기존 경로 + 모든 에이전트 폴더)
   - `stats.session_summaries.total_elapsed_minutes` — 전체 누적 협업 시간 (분)
 
 `session_name`이 빈 문자열이면 **중단** → "세션명이 설정되지 않았습니다. `/rename 세션명`으로 설정 후 다시 시도해주세요." 안내
@@ -155,7 +156,7 @@ python "$SKILL_DIR/scripts/collect-meta.py"
 - 방금 완료한 작업에서 자연스럽게 이어지는 후속 작업
 - 작업 중 발견한 개선 기회나 잠재 이슈
 - 같은 맥락에서 효율을 높일 수 있는 관련 작업
-- `Z:/_myself/profile/interests.md`를 읽고, 현재 태스크와 교차점이 있는 관심사/활성 작업도 후보에 포함한다
+- `E:/0/_myself/profile/interests.md`를 읽고, 현재 태스크와 교차점이 있는 관심사/활성 작업도 후보에 포함한다
 
 ### Step 3: 통합 드래프트 표시 + 확인
 
@@ -337,7 +338,7 @@ AskUserQuestion으로 선택 (단일 선택):
 
 ① todo.xlsx에서 마지막 인덱스를 조회한다:
 ```bash
-python -c "import openpyxl; wb = openpyxl.load_workbook('Z:/_myself/todo.xlsx'); ws = wb.active; rows = list(ws.iter_rows(min_row=2, values_only=True)); print(f'LAST_INDEX={rows[-1][0] if rows else \"td0000000000\"}'); print(f'TOTAL_ROWS={len(rows)}')" 2>/dev/null || echo "LAST_INDEX=td0000000000"
+python -c "import openpyxl; wb = openpyxl.load_workbook('E:/0/_myself/todo.xlsx'); ws = wb.active; rows = list(ws.iter_rows(min_row=2, values_only=True)); print(f'LAST_INDEX={rows[-1][0] if rows else \"td0000000000\"}'); print(f'TOTAL_ROWS={len(rows)}')" 2>/dev/null || echo "LAST_INDEX=td0000000000"
 ```
 
 ② 선택된 항목을 JSON으로 구성하여 Write 도구로 `$SKILL_DIR/scripts/.todo-tmp.json`에 저장한다.
@@ -494,6 +495,7 @@ AskUserQuestion(questions=[
 | AI 평가 | `ai` | `evaluation.` | `{sub_scores, improvements}` |
 | 사용자 평가 | `user` | `evaluation.` | `{score, good_points, bad_points, improvements}` |
 | 세션 시간 | `timing` | 최상위 | Step 1의 `timing` 객체를 그대로 전달 |
+| 에이전트 | `agent` | 최상위 | Step 1의 `agent` 값을 그대로 전달 (`null` 또는 에이전트명) |
 
 **반드시 위 키 이름을 정확히 사용할 것.** `information`, `decisions`, `work_done`, `action_items`, `timestamp` 등은 오류를 유발한다.
 
@@ -565,7 +567,7 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 
 ```
 ─────────────────────────────────────────────────────────────────
-## [랩업 완료] {session_name}
+## [랩업 완료] {session_name} {agent_badge}
 ─────────────────────────────────────────────────────────────────
 **▸ 세션 시간**
   시작 HH:MM  │  랩업 HH:MM  │  소요 Xh Ym
@@ -617,7 +619,7 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
   ```bash
   python -c "
   import openpyxl, json
-  wb = openpyxl.load_workbook('Z:/_myself/todo.xlsx')
+  wb = openpyxl.load_workbook('E:/0/_myself/todo.xlsx')
   ws = wb.active
   counts = {}
   for row in ws.iter_rows(min_row=2, values_only=True):
@@ -631,6 +633,10 @@ python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
 - `대기 N건 (z%)` — z% = 대기 / 활성, 소수점 버림
 
 `{change_hint}`는 "언어별 변경 힌트 매핑" 표에서 현재 언어에 해당하는 값을 사용한다.
+
+**에이전트 배지 규칙:**
+- `{agent_badge}`: 에이전트 세션이면 `[{AGENT_NAME}]` (대문자), 비에이전트 세션이면 빈 문자열
+- 예: `## [랩업 완료] 세션명 [TARS]` / `## [랩업 완료] 세션명`
 
 ## 에러 핸들링
 

@@ -30,9 +30,10 @@ if sys.stdin.encoding and sys.stdin.encoding.lower() != "utf-8":
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
 
 # 고정 저장 경로
-USER_LESSONS_DIR = Path(r"Z:\_myself\lesson-learned")
-AI_LESSONS_DIR = Path(r"Z:\_ai\lesson-learned")
-SESSION_SUMMARIES_DIR = Path(r"Z:\_ai\session-summaries")
+USER_LESSONS_DIR = Path(r"E:\0\_myself\lesson-learned")
+AI_LESSONS_DIR = Path(r"E:\0\_ai\lesson-learned")
+SESSION_SUMMARIES_DIR = Path(r"E:\0\_ai\session-summaries")
+AI_ROOT = Path(r"Z:\_ai")
 
 
 def sanitize_project_path(project: str) -> str:
@@ -77,11 +78,12 @@ def append_jsonl(filepath: Path, entry: dict) -> None:
         f.write(line + "\n")
 
 
-def build_summary_entry(data: dict, entry_id: str) -> dict:
+def build_summary_entry(data: dict, entry_id: str, agent: str | None) -> dict:
     """세션 요약 JSONL 엔트리 구성."""
     summary = data.get("summary", {})
     return {
         "id": entry_id,
+        "agent": agent,
         "date": data["date"],
         "session_id": data["session_id"],
         "session_name": data["session_name"],
@@ -96,10 +98,11 @@ def build_summary_entry(data: dict, entry_id: str) -> dict:
     }
 
 
-def build_lesson_entry(data: dict, lesson: dict, entry_id: str) -> dict:
+def build_lesson_entry(data: dict, lesson: dict, entry_id: str, agent: str | None) -> dict:
     """Lesson-Learned JSONL 엔트리 구성."""
     return {
         "id": entry_id,
+        "agent": agent,
         "date": data["date"],
         "session_id": data["session_id"],
         "session_name": data["session_name"],
@@ -122,18 +125,40 @@ def run(data: dict) -> dict:
     if missing:
         return {"error": f"필수 필드 누락: {missing}"}
 
+    # 에이전트 식별
+    agent = data.get("agent")
+    if isinstance(agent, str):
+        agent = agent.strip().lower() or None
+
     result = {"saved": {}, "counts": {}}
+
+    # 경로 분기
+    project_slug = sanitize_project_path(data["project"])
+    today = data["date"][:10].replace("-", "")
+
+    if agent:
+        agent_wrapup_dir = AI_ROOT / "agents" / agent / "wrapup"
+        summary_file = agent_wrapup_dir / "sessions" / f"{project_slug}.jsonl"
+        ai_file = agent_wrapup_dir / "lessons.jsonl"
+        summary_id_prefix = f"ws-{agent}-{today}"
+        ai_id_prefix = f"ll-ai-{agent}-{today}"
+    else:
+        summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
+        ai_file = AI_LESSONS_DIR / "lessons.jsonl"
+        summary_id_prefix = f"ws-{today}"
+        ai_id_prefix = f"ll-ai-{today}"
+
+    # User 학습은 항상 중앙
+    user_file = USER_LESSONS_DIR / "lessons.jsonl"
+    user_id_prefix = f"ll-user-{today}"
 
     # 1) 세션 요약 저장
     summary = data.get("summary")
     has_summary = summary and any(summary.get(k) for k in ["info", "qa", "conclusions", "done", "actions"])
     has_evaluation = data.get("evaluation") is not None
     if has_summary or has_evaluation:
-        project_slug = sanitize_project_path(data["project"])
-        summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
-        today = data["date"][:10]
-        sid = get_next_id(summary_file, f"ws-{today.replace('-', '')}")
-        entry = build_summary_entry(data, sid)
+        sid = get_next_id(summary_file, summary_id_prefix)
+        entry = build_summary_entry(data, sid, agent)
         append_jsonl(summary_file, entry)
         result["saved"]["summary"] = str(summary_file)
         result["counts"]["summary"] = 1
@@ -141,11 +166,9 @@ def run(data: dict) -> dict:
     # 2) 사용자 Lesson-Learned 저장
     user_lessons = data.get("user_lessons", [])
     if user_lessons:
-        user_file = USER_LESSONS_DIR / "lessons.jsonl"
-        today = data["date"][:10]
         for lesson in user_lessons:
-            lid = get_next_id(user_file, f"ll-user-{today.replace('-', '')}")
-            entry = build_lesson_entry(data, lesson, lid)
+            lid = get_next_id(user_file, user_id_prefix)
+            entry = build_lesson_entry(data, lesson, lid, agent)
             append_jsonl(user_file, entry)
         result["saved"]["user_lessons"] = str(user_file)
         result["counts"]["user_lessons"] = len(user_lessons)
@@ -153,11 +176,9 @@ def run(data: dict) -> dict:
     # 3) AI Lesson-Learned 저장
     ai_lessons = data.get("ai_lessons", [])
     if ai_lessons:
-        ai_file = AI_LESSONS_DIR / "lessons.jsonl"
-        today = data["date"][:10]
         for lesson in ai_lessons:
-            lid = get_next_id(ai_file, f"ll-ai-{today.replace('-', '')}")
-            entry = build_lesson_entry(data, lesson, lid)
+            lid = get_next_id(ai_file, ai_id_prefix)
+            entry = build_lesson_entry(data, lesson, lid, agent)
             append_jsonl(ai_file, entry)
         result["saved"]["ai_lessons"] = str(ai_file)
         result["counts"]["ai_lessons"] = len(ai_lessons)

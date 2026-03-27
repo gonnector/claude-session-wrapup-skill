@@ -40,9 +40,10 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
 # ── 저장 경로 상수 ────────────────────────────────────────
-USER_LESSONS_FILE = Path(r"Z:\_myself\lesson-learned\lessons.jsonl")
-AI_LESSONS_FILE   = Path(r"Z:\_ai\lesson-learned\lessons.jsonl")
-SESSION_SUMMARIES_DIR = Path(r"Z:\_ai\session-summaries")
+USER_LESSONS_FILE = Path(r"E:\0\_myself\lesson-learned\lessons.jsonl")
+AI_LESSONS_FILE   = Path(r"E:\0\_ai\lesson-learned\lessons.jsonl")
+SESSION_SUMMARIES_DIR = Path(r"E:\0\_ai\session-summaries")
+AI_ROOT = Path(r"Z:\_ai")
 
 
 # ── 시간 헬퍼 ─────────────────────────────────────────────
@@ -92,39 +93,82 @@ def _sanitize_project_path(project: str) -> str:
     return s
 
 
-def collect_stats(project_path: str) -> dict:
-    project_slug = _sanitize_project_path(project_path)
-    summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
+def _scan_summaries(base_dir: Path) -> tuple[int, int, set]:
+    """summaries 디렉토리를 스캔하여 (총 건수, 총 소요시간, 세션ID set) 반환."""
+    total = 0
+    elapsed = 0
+    session_ids = set()
+    if not base_dir.exists():
+        return total, elapsed, session_ids
+    for summary_dir in base_dir.iterdir():
+        if not summary_dir.is_dir():
+            continue
+        sf = summary_dir / "summaries.jsonl"
+        if not sf.exists():
+            continue
+        total, elapsed, session_ids = _scan_jsonl_summaries(sf, total, elapsed, session_ids)
+    return total, elapsed, session_ids
 
-    # 글로벌 통계: 모든 프로젝트의 랩업 수 + 누적 협업 시간 + 고유 세션 수
-    global_total = 0
-    total_elapsed = 0
-    unique_session_ids = set()
-    if SESSION_SUMMARIES_DIR.exists():
-        for summary_dir in SESSION_SUMMARIES_DIR.iterdir():
-            if not summary_dir.is_dir():
+
+def _scan_agent_wrapups(agents_dir: Path) -> tuple[int, int, set]:
+    """모든 에이전트의 wrapup/sessions/ 를 스캔."""
+    total = 0
+    elapsed = 0
+    session_ids = set()
+    if not agents_dir.exists():
+        return total, elapsed, session_ids
+    for agent_dir in agents_dir.iterdir():
+        if not agent_dir.is_dir():
+            continue
+        sessions_dir = agent_dir / "wrapup" / "sessions"
+        if not sessions_dir.exists():
+            continue
+        for sf in sessions_dir.glob("*.jsonl"):
+            total, elapsed, session_ids = _scan_jsonl_summaries(sf, total, elapsed, session_ids)
+    return total, elapsed, session_ids
+
+
+def _scan_jsonl_summaries(filepath: Path, total: int, elapsed: int, session_ids: set) -> tuple[int, int, set]:
+    """단일 JSONL 파일에서 요약 통계를 누적."""
+    with open(filepath, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
                 continue
-            sf = summary_dir / "summaries.jsonl"
-            if not sf.exists():
+            try:
+                entry = json.loads(line)
+                if not isinstance(entry, dict):
+                    continue
+                total += 1
+                sid = entry.get("session_id", "")
+                if sid:
+                    session_ids.add(sid)
+                timing = entry.get("timing")
+                if timing and isinstance(timing, dict):
+                    elapsed += timing.get("elapsed_minutes", 0)
+            except json.JSONDecodeError:
                 continue
-            with open(sf, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        entry = json.loads(line)
-                        if not isinstance(entry, dict):
-                            continue
-                        global_total += 1
-                        sid = entry.get("session_id", "")
-                        if sid:
-                            unique_session_ids.add(sid)
-                        timing = entry.get("timing")
-                        if timing and isinstance(timing, dict):
-                            total_elapsed += timing.get("elapsed_minutes", 0)
-                    except json.JSONDecodeError:
-                        continue
+    return total, elapsed, session_ids
+
+
+def collect_stats(project_path: str, agent: str | None = None) -> dict:
+    project_slug = _sanitize_project_path(project_path)
+
+    # 에이전트별 경로 결정
+    if agent:
+        agent_wrapup_dir = AI_ROOT / "agents" / agent / "wrapup"
+        summary_file = agent_wrapup_dir / "sessions" / f"{project_slug}.jsonl"
+        ai_lessons_file = agent_wrapup_dir / "lessons.jsonl"
+    else:
+        summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
+        ai_lessons_file = AI_LESSONS_FILE
+
+    # 글로벌 통계: 기존 경로 + 모든 에이전트 폴더 합산
+    g1_total, g1_elapsed, g1_sids = _scan_summaries(SESSION_SUMMARIES_DIR)
+    g2_total, g2_elapsed, g2_sids = _scan_agent_wrapups(AI_ROOT / "agents")
+    global_total = g1_total + g2_total
+    total_elapsed = g1_elapsed + g2_elapsed
+    unique_session_ids = g1_sids | g2_sids
 
     return {
         "user_lessons": {
@@ -132,8 +176,8 @@ def collect_stats(project_path: str) -> dict:
             "categories": _get_categories(USER_LESSONS_FILE),
         },
         "ai_lessons": {
-            "total": _count_jsonl(AI_LESSONS_FILE),
-            "categories": _get_categories(AI_LESSONS_FILE),
+            "total": _count_jsonl(ai_lessons_file),
+            "categories": _get_categories(ai_lessons_file),
         },
         "session_summaries": {
             "total": _count_jsonl(summary_file),
@@ -235,16 +279,20 @@ def collect_session(project_path: str) -> dict:
 
 # ── 시간 측정 ─────────────────────────────────────────────
 def collect_timing(session_id: str, session_start_utc: str,
-                   project_path: str, now: datetime) -> dict | None:
+                   project_path: str, now: datetime,
+                   agent: str | None = None) -> dict | None:
     """세션 시간 측정 데이터를 수집한다."""
     if not session_start_utc:
         return None
 
     session_start = _utc_to_local_naive(session_start_utc)
 
-    # 같은 세션에서 직전 wrapup이 있는지 확인
+    # 같은 세션에서 직전 wrapup이 있는지 확인 (에이전트별 경로)
     project_slug = _sanitize_project_path(project_path)
-    summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
+    if agent:
+        summary_file = AI_ROOT / "agents" / agent / "wrapup" / "sessions" / f"{project_slug}.jsonl"
+    else:
+        summary_file = SESSION_SUMMARIES_DIR / project_slug / "summaries.jsonl"
 
     prev_wrapup_dt = None
     wrapup_count = 0
@@ -288,6 +336,10 @@ def main():
     project_path = os.getcwd()
     now = datetime.now()
 
+    # 에이전트 식별
+    agent_raw = os.environ.get("CLAUDE_AGENT_NAME", "").strip().lower()
+    agent = agent_raw if agent_raw else None
+
     session_info = collect_session(project_path)
     session_start_utc = session_info.pop("session_start", None)
 
@@ -296,14 +348,16 @@ def main():
         session_start_utc,
         project_path,
         now,
+        agent=agent,
     )
 
     result = {
         "date":    now.strftime("%Y-%m-%dT%H:%M:%S"),
         "project": project_path,
+        "agent":   agent,
         **session_info,
         "timing":  timing,
-        "stats":   collect_stats(project_path),
+        "stats":   collect_stats(project_path, agent=agent),
     }
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
