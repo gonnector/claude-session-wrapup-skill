@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.8.1] - 2026-03-27
+
+### Fixed
+- **AskUserQuestion 채널 모드 fallback** — `--channels` 활성 세션에서 AskUserQuestion이 비활성화되는 문제에 대한 text-based fallback 추가. 원인: Claude Code v2.1.80에서 채널 모드 시 블로킹 방지를 위해 의도적으로 비활성화됨
+
+---
+
 ## [1.8.0] - 2026-03-27
 
 ### Added

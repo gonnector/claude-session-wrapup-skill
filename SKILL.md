@@ -19,6 +19,14 @@ description: "세션 마무리, 세션 정리, 세션 래핑, 세션 요약, 배
 ToolSearch에서 AskUserQuestion이 검색되지 않는 것은 정상 — deferred tool이 아니라 항상 사용 가능한 내장 도구이기 때문이다.
 이 스킬의 모든 AskUserQuestion 호출(Step 0/3/5/6d/8)은 **ToolSearch 없이 직접 실행**한다.
 
+**채널 모드(`--channels`) fallback:**
+`--channels` 플래그가 활성화된 세션에서는 AskUserQuestion이 **비활성화**된다 (Claude Code v2.1.80+).
+이유: AskUserQuestion이 터미널을 블로킹하면 채널 메시지 수신/응답이 불가하기 때문.
+- AskUserQuestion 호출이 실패하거나 도구가 없으면 → **text-based fallback** 사용
+- 선택지를 텍스트로 번호 목록으로 표시하고 사용자의 번호/텍스트 입력을 받는다
+- 이 fallback은 UI 품질은 떨어지지만 기능적으로 동일한 결과를 보장한다
+- Anthropic이 AskUserQuestion의 채널 릴레이를 구현하면 이 fallback은 제거 예정
+
 ## 언어별 변경 힌트 매핑
 
 | 언어 코드 | language_name | language_label | change_hint |
