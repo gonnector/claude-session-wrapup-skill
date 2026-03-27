@@ -14,6 +14,11 @@ description: "세션 마무리, 세션 정리, 세션 래핑, 세션 요약, 배
 스크립트 경로 규칙: 이 스킬의 base directory를 `$SKILL_DIR`로 참조한다.
 실행 시 `python "$SKILL_DIR/scripts/save-wrapup.py"` 형태로 **절대 경로** 사용.
 
+**CRITICAL — AskUserQuestion 호출 규칙:**
+`AskUserQuestion`은 built-in 도구이다. **ToolSearch로 찾지 말고 직접 호출할 것.**
+ToolSearch에서 AskUserQuestion이 검색되지 않는 것은 정상 — deferred tool이 아니라 항상 사용 가능한 내장 도구이기 때문이다.
+이 스킬의 모든 AskUserQuestion 호출(Step 0/3/5/6d/8)은 **ToolSearch 없이 직접 실행**한다.
+
 ## 언어별 변경 힌트 매핑
 
 | 언어 코드 | language_name | language_label | change_hint |
