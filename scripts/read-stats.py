@@ -11,6 +11,7 @@ project_path 미지정 시 세션 요약은 제외하고 lesson-learned 통계�
 
 import io
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -22,7 +23,7 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 USER_LESSONS_FILE = Path(r"E:\0\_myself\lesson-learned\lessons.jsonl")
 AI_LESSONS_FILE = Path(r"E:\0\_ai\lesson-learned\lessons.jsonl")
 SESSION_SUMMARIES_DIR = Path(r"E:\0\_ai\session-summaries")
-AI_ROOT = Path(r"Z:\_ai")
+AI_ROOT = Path(os.environ.get("AIOS_PATH") or os.environ.get("AI_ROOT") or os.environ.get("AIOS") or r"Z:\_ai")
 
 
 def sanitize_project_path(project: str) -> str:

@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.8.2] - 2026-04-27
+
+### Changed
+- **AIOS_PATH 환경변수 우선 + AI_ROOT fallback** — `AI_ROOT` 결정 시 환경변수(`AIOS_PATH` → `AI_ROOT` → `AIOS`) 우선, fallback `Z:\_ai`. 영향 파일: `save-wrapup.py`, `collect-meta.py`, `read-stats.py`. handoff 스킬 v0.1.6 패턴 정합. AIOS 루트 c:/aios 마이그레이션 시 멤버 wrapup 산출물이 신규 표준 경로에 저장되도록 보장
+
+---
+
 ## [1.8.1] - 2026-03-27
 
 ### Fixed
