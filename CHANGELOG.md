@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.8.5] - 2026-04-27 — Legacy Stabilization
+
+### Notes
+- **Legacy 안정화 표기** — AIOS 통합 wrapup이 별도 컴포넌트(`aios-dev/components/wrapup/`)로 분리됨 (Dylan 결정 2026-04-27)
+- 본 repo는 **standalone wrapup** (AIOS 환경 비의존, todo.xlsx 사용)으로 stabilize. public 배포 검토 (TBD)
+- 로컬 위치 변경: `~/.claude/skills/wrapup/` (운영 git source) → `E:/project/claude-session-wrapup-skill/` (저장소 일관 명명)
+- 운영 폴더 (`~/.claude/skills/wrapup/`)는 신 AIOS wrapup(`aios-dev/components/wrapup/`)으로 junction 변경
+- 백업 ref: tag `v1.8.4-legacy`, branch `legacy/v1.8.4-pre-aios-task-refactor`
+
+---
+
 ## [1.8.4] - 2026-04-27
 
 ### Fixed

@@ -1,6 +1,8 @@
 [English](README.md) | [한국어](README_ko.md)
 
-# /wrapup — Session Wrapup Skill for Claude Code
+# /wrapup — Session Wrapup Skill for Claude Code (Standalone, Legacy-Stabilized)
+
+> **Note (2026-04-27)**: This is the **standalone** wrapup skill (AIOS-independent). For AIOS-environment users, use the separate AIOS-integrated wrapup component at `aios-dev/components/wrapup/` instead. This standalone version is stabilized at v1.8.x for legacy users; public release planned (TBD).
 
 A Claude Code skill that automatically records two layers of structured notes at the end of each session:
 
