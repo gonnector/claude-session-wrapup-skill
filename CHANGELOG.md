@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.8.4] - 2026-04-27
+
+### Fixed
+- **멀티 에이전트 임시 파일 경합 방지** — Step 5/7 임시 JSON 파일(`.todo-tmp.json`, `.wrapup-tmp.json`)이 글로벌 단일 위치라 여러 에이전트 동시 wrapup 시 덮어쓰기 충돌 위험 발견. 파일명 패턴을 `{AGENT}-{SID8}` 추가(예: `.wrapup-tmp-tars-f96d68a5.json`)로 변경 — 멤버별·세션별 unique 보장. `{AGENT}`는 에이전트명 또는 `default`(비에이전트), `{SID8}`은 session_id 첫 8자. SKILL.md만 변경(Python 스크립트는 `--file` 인자로 받기에 무관)
+
+---
+
 ## [1.8.3] - 2026-04-27
 
 ### Changed

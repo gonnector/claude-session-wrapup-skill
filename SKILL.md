@@ -354,7 +354,13 @@ AskUserQuestion으로 선택 (단일 선택):
 python -c "import openpyxl; wb = openpyxl.load_workbook('E:/0/_myself/todo.xlsx'); ws = wb.active; rows = list(ws.iter_rows(min_row=2, values_only=True)); print(f'LAST_INDEX={rows[-1][0] if rows else \"td0000000000\"}'); print(f'TOTAL_ROWS={len(rows)}')" 2>/dev/null || echo "LAST_INDEX=td0000000000"
 ```
 
-② 선택된 항목을 JSON으로 구성하여 Write 도구로 `$SKILL_DIR/scripts/.todo-tmp.json`에 저장한다.
+② 선택된 항목을 JSON으로 구성하여 Write 도구로 `$SKILL_DIR/scripts/.todo-tmp-{AGENT}-{SID8}.json`에 저장한다.
+
+> **멀티 에이전트 경합 방지 — 임시 파일명 패턴 (필수)**
+> - `{AGENT}`: Step 1의 `agent` 값 (에이전트 세션이면 소문자 에이전트명, 비에이전트면 `default`)
+> - `{SID8}`: Step 1의 `session_id` 첫 8자 (UUID 앞 8자, 예: `f96d68a5`)
+> - 예시: `.todo-tmp-tars-f96d68a5.json` / `.todo-tmp-default-abc123de.json`
+> - 사유: 여러 에이전트 동시 wrapup 시 글로벌 단일 임시파일 경합으로 데이터 덮어쓰기 위험. 멤버별·세션별 unique 파일명으로 충돌 0 보장
 각 항목의 필드:
 - `index`: 마지막 인덱스 + 1부터 순차 부여 (예: `td0000000041`, `td0000000042`)
 - `category`: 세션 컨텍스트에서 추론 (기존 todo의 카테고리와 일관성 유지)
@@ -372,12 +378,12 @@ python -c "import openpyxl; wb = openpyxl.load_workbook('E:/0/_myself/todo.xlsx'
 
 ③ 등록 스크립트 실행:
 ```bash
-python "$HOME/.claude/skills/todo/scripts/register-todos.py" --file "$SKILL_DIR/scripts/.todo-tmp.json"
+python "$HOME/.claude/skills/todo/scripts/register-todos.py" --file "$SKILL_DIR/scripts/.todo-tmp-{AGENT}-{SID8}.json"
 ```
 
 ④ 임시 파일 정리:
 ```bash
-python -c "import os; os.remove(r'SKILL_DIR/scripts/.todo-tmp.json')"
+python -c "import os; os.remove(r'SKILL_DIR/scripts/.todo-tmp-{AGENT}-{SID8}.json')"
 ```
 
 ⑤ 등록 결과를 간략히 표시:
@@ -518,8 +524,14 @@ Claude Code 안전 검사를 유발하므로 사용하지 않는다.
 
 **① Write 도구로 JSON 파일 저장:**
 
-JSON 데이터를 `SKILL_DIR/scripts/.wrapup-tmp.json` 에 Write 도구로 직접 저장한다.
+JSON 데이터를 `SKILL_DIR/scripts/.wrapup-tmp-{AGENT}-{SID8}.json` 에 Write 도구로 직접 저장한다.
 (Write 도구는 bash 안전 검사 대상이 아님)
+
+> **멀티 에이전트 경합 방지 — 임시 파일명 패턴 (필수, Step 5와 동일)**
+> - `{AGENT}`: Step 1의 `agent` 값 (에이전트 세션이면 소문자 에이전트명, 비에이전트면 `default`)
+> - `{SID8}`: Step 1의 `session_id` 첫 8자
+> - 예시: `.wrapup-tmp-tars-f96d68a5.json` / `.wrapup-tmp-default-abc123de.json`
+> - 사유: 여러 에이전트 동시 wrapup 시 글로벌 단일 임시파일 경합 방지. 멤버별·세션별 unique 보장
 
 입력 JSON 전체 구조는 `references/schema.md`의 "save-wrapup.py 입력 JSON" 참조.
 `evaluation` 필드는 최상위에 위치 (summary, user_lessons, ai_lessons와 동일 레벨).
@@ -531,13 +543,13 @@ JSON 데이터를 `SKILL_DIR/scripts/.wrapup-tmp.json` 에 Write 도구로 직�
 **② `--file` 인수로 저장 스크립트 실행 (단일 라인, `$()` 없음):**
 
 ```bash
-python "SKILL_DIR\scripts\save-wrapup.py" --file "SKILL_DIR\scripts\.wrapup-tmp.json"
+python "SKILL_DIR\scripts\save-wrapup.py" --file "SKILL_DIR\scripts\.wrapup-tmp-{AGENT}-{SID8}.json"
 ```
 
-실행 후 `SKILL_DIR/scripts/.wrapup-tmp.json` 파일은 아래 단일 호출로 정리한다:
+실행 후 `SKILL_DIR/scripts/.wrapup-tmp-{AGENT}-{SID8}.json` 파일은 아래 단일 호출로 정리한다:
 
 ```bash
-python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp.json')"
+python -c "import os; os.remove(r'SKILL_DIR\scripts\.wrapup-tmp-{AGENT}-{SID8}.json')"
 ```
 
 `SKILL_DIR`은 실제 스킬 base directory 절대 경로로 치환한다 (예: `C:\Users\Pro\.claude\skills\wrapup`).
