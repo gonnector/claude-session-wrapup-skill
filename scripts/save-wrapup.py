@@ -30,10 +30,11 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 if sys.stdin.encoding and sys.stdin.encoding.lower() != "utf-8":
     sys.stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8")
 
-# 고정 저장 경로
-USER_LESSONS_DIR = Path(r"E:\0\_myself\lesson-learned")
-AI_LESSONS_DIR = Path(r"E:\0\_ai\lesson-learned")
-SESSION_SUMMARIES_DIR = Path(r"E:\0\_ai\session-summaries")
+# 저장 경로 — 환경변수 우선, fallback 신표준
+USER_LESSONS_DIR = Path(os.environ.get("PERSONAL_PATH") or r"E:\GD\내 드라이브\_myself") / "lesson-learned"
+_AIOS_FALLBACK = os.environ.get("AIOS_PATH") or r"c:\aios"
+AI_LESSONS_DIR = Path(_AIOS_FALLBACK) / "lesson-learned"
+SESSION_SUMMARIES_DIR = Path(_AIOS_FALLBACK) / "session-summaries"
 AI_ROOT = Path(os.environ.get("AIOS_PATH") or os.environ.get("AI_ROOT") or os.environ.get("AIOS") or r"Z:\_ai")
 
 

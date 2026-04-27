@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [1.8.3] - 2026-04-27
+
+### Changed
+- **PERSONAL_PATH 환경변수 우선 + AIOS_PATH fallback 일원화** — `USER_LESSONS_DIR` 결정 시 `PERSONAL_PATH` 환경변수 우선, fallback `E:\GD\내 드라이브\_myself`. `AI_LESSONS_DIR`/`SESSION_SUMMARIES_DIR`도 `AIOS_PATH` 환경변수 우선, fallback `c:\aios` (구 `E:\0\_ai` 제거). 영향 파일: `save-wrapup.py`, `collect-meta.py`, `read-stats.py`. Dylan 환경변수 신표준(USER_NAME/PERSONAL_PATH/WORK_PATH/WORK_NAME) 정합
+
+---
+
 ## [1.8.2] - 2026-04-27
 
 ### Changed

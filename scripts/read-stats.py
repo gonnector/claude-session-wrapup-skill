@@ -20,9 +20,11 @@ from pathlib import Path
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-USER_LESSONS_FILE = Path(r"E:\0\_myself\lesson-learned\lessons.jsonl")
-AI_LESSONS_FILE = Path(r"E:\0\_ai\lesson-learned\lessons.jsonl")
-SESSION_SUMMARIES_DIR = Path(r"E:\0\_ai\session-summaries")
+# 저장 경로 — 환경변수 우선, fallback 신표준
+USER_LESSONS_FILE = Path(os.environ.get("PERSONAL_PATH") or r"E:\GD\내 드라이브\_myself") / "lesson-learned" / "lessons.jsonl"
+_AIOS_FALLBACK = os.environ.get("AIOS_PATH") or r"c:\aios"
+AI_LESSONS_FILE = Path(_AIOS_FALLBACK) / "lesson-learned" / "lessons.jsonl"
+SESSION_SUMMARIES_DIR = Path(_AIOS_FALLBACK) / "session-summaries"
 AI_ROOT = Path(os.environ.get("AIOS_PATH") or os.environ.get("AI_ROOT") or os.environ.get("AIOS") or r"Z:\_ai")
 
 
